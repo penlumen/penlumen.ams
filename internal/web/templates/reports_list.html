@@ -1,0 +1,35 @@
+{{template "head" "Reports"}}
+{{template "staff-start" .}}
+  {{template "page-title" (dict "Title" "Reports" "Sub" (printf "How each class did. A pass is %d%% or more." .PassMark))}}
+  {{if .Rows}}
+  <section class="card overflow-hidden" aria-label="Reports">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[720px] text-sm">
+        <thead class="border-b border-line bg-soft text-left text-xs text-muted">
+          <tr class="[&>th]:px-4 [&>th]:py-2.5 [&>th]:font-medium"><th>Assessment</th><th>Class</th><th>Sat</th><th>Average</th><th>Pass rate</th><th>Status</th></tr>
+        </thead>
+        <tbody class="divide-y divide-line [&_td]:px-4 [&_td]:py-3">
+          {{range .Rows}}
+          <tr class="hover:bg-soft">
+            <td><a class="font-medium text-fg no-underline hover:text-primary" href="/reports/{{.ID}}">{{.Subject}} · {{.Title}}</a><div class="text-xs text-muted">{{kindName .Kind}} · {{when .OpensAt}}</div></td>
+            <td>{{.Class}}</td>
+            <td>{{.Sat}}</td>
+            <td>{{.Average}}%</td>
+            <td>
+              <div class="flex items-center gap-2">
+                <span class="h-1.5 w-20 overflow-hidden rounded-full bg-muted-bg"><span class="block h-full rounded-full bg-ok-solid" style="width: {{.PassRate}}%"></span></span>
+                <span class="tabular-nums">{{.PassRate}}%</span>
+              </div>
+            </td>
+            <td>{{template "status-pill" .Window}}</td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {{else}}
+  {{template "empty" "No reports yet. They appear once students have sat an assessment."}}
+  {{end}}
+{{template "staff-end"}}
+{{template "foot"}}

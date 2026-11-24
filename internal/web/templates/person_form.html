@@ -1,0 +1,102 @@
+{{$f := .F}}{{$student := eq $f.Role "student"}}{{$local := eq $f.Source "local"}}{{$tab := "staff"}}{{if $student}}{{$tab = "students"}}{{end}}
+{{template "head" (or $f.Name (and $student "Add student") "Add staff")}}
+{{template "staff-start" .}}
+  {{template "back" (dict "Href" (printf "/people?tab=%s" $tab) "Label" "People")}}
+  {{template "page-title" (dict "Title" (or $f.Name (and $student "Add a student") "Add a staff member") "Sub" (and $f.ID (or (and $local "Added in Exams.") "From Penlumen School: their details change there. Here you only set how they sign in to Exams.")))}}
+  {{template "notice" .Notice}}
+
+  {{with .Secret}}
+  <div class="flex flex-col gap-2 rounded-[10px] border border-ok-solid bg-ok-bg px-4 py-3 text-ok" role="status">
+    <span class="text-sm">{{if $student}}{{$f.Name}}'s PIN for signing in with reg number <strong>{{$f.RegNumber}}</strong>:{{else}}{{$f.Name}}'s password for signing in with <strong>{{$f.Email}}</strong>:{{end}}</span>
+    <code class="w-fit rounded-md bg-card px-3 py-1.5 font-mono text-xl tracking-widest text-fg">{{.}}</code>
+    <span class="text-xs">Write it down or pass it on now: it isn't shown again. You can set a new one any time.</span>
+  </div>
+  {{end}}
+
+  <div class="flex flex-wrap items-start gap-6">
+    <form class="card flex min-w-0 flex-[999_1_420px] flex-col gap-4 p-6" method="post" action="{{if $f.ID}}/people/{{$f.ID}}{{else}}/people{{end}}" novalidate>
+      {{with .Errors}}{{if or (index . "name") (index . "email") (index . "reg_number") (index . "class") (index . "role") (index . "password")}}{{template "error-box" "Check the highlighted fields."}}{{end}}{{end}}
+      <fieldset class="flex flex-col gap-4" {{if not $local}}disabled{{end}}>
+        <label class="field">Name
+          <input class="input" name="name" value="{{$f.Name}}" required autofocus>
+          {{template "err" index .Errors "name"}}
+        </label>
+        {{if $student}}
+        <input type="hidden" name="role" value="student">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="field">Reg number <span class="hint">They sign in with it.</span>
+            <input class="input" name="reg_number" value="{{$f.RegNumber}}" autocapitalize="characters" required>
+            {{template "err" index .Errors "reg_number"}}
+          </label>
+          <label class="field">Class
+            <select class="input" name="class" required>
+              <option value="">Choose a class…</option>
+              {{range .Classes}}<option value="{{.UUID}}" {{if eq .UUID $f.Class}}selected{{end}}>{{.Name}}</option>{{end}}
+            </select>
+            {{template "err" index .Errors "class"}}
+            {{if not .Classes}}<span class="hint">Add a class first, on the Classes tab.</span>{{end}}
+          </label>
+        </div>
+        {{else}}
+        <label class="field">Email <span class="hint">They sign in with it.</span>
+          <input class="input" name="email" type="email" value="{{$f.Email}}" required>
+          {{template "err" index .Errors "email"}}
+        </label>
+        <label class="field">Role
+          <select class="input" name="role">
+            <option value="staff" {{if eq $f.Role "staff"}}selected{{end}}>Teacher: sets, monitors and marks assessments</option>
+            <option value="admin" {{if eq $f.Role "admin"}}selected{{end}}>Administrator: also manages people, classes and terms</option>
+          </select>
+          {{template "err" index .Errors "role"}}
+        </label>
+        <label class="field">Position
+          <select class="input" name="position">
+            <option value="academic" {{if ne $f.Position "administrative"}}selected{{end}}>Academic (a teacher): assessments only for the subjects they teach</option>
+            <option value="administrative" {{if eq $f.Position "administrative"}}selected{{end}}>Administrative: assessments for any subject</option>
+          </select>
+          <span class="hint">Administrators can set any subject's assessments either way.</span>
+        </label>
+        {{if gt (len .Branches) 1}}
+        <fieldset class="field"><legend class="mb-1.5">Branches <span class="hint">Leave all unticked for every branch.</span></legend>
+          {{range .Branches}}<label class="flex items-center gap-2.5 text-sm font-normal"><input class="size-4 accent-primary" type="checkbox" name="branch" value="{{.UUID}}" {{if contains $f.Branches .UUID}}checked{{end}}> {{.Name}}</label>{{end}}
+        </fieldset>
+        {{end}}
+        {{end}}
+        {{if not $f.ID}}
+        <label class="field">{{if $student}}PIN <span class="hint">4 to 8 digits. Leave empty for a new 6-digit PIN.</span>{{else}}Password <span class="hint">At least 8 characters. Leave empty for a new one.</span>{{end}}
+          <input class="input" name="password" type="text" {{if $student}}inputmode="numeric"{{end}} autocomplete="off">
+          {{template "err" index .Errors "password"}}
+        </label>
+        {{end}}
+      </fieldset>
+      {{if $local}}
+      <div class="flex justify-end gap-2">
+        <a class="btn btn-outline" href="/people?tab={{if $student}}students{{else}}staff{{end}}">Cancel</a>
+        <button class="btn btn-primary" type="submit">{{if $f.ID}}Save changes{{else if $student}}Add student{{else}}Add staff member{{end}}</button>
+      </div>
+      {{end}}
+    </form>
+
+    {{if $f.ID}}
+    <aside class="flex flex-[1_1_280px] flex-col gap-4">
+      <form class="card flex flex-col gap-3 p-5" method="post" action="/people/{{$f.ID}}/password">
+        <h2 class="font-medium">Signing in to Exams</h2>
+        <p class="text-sm text-fg-2">{{if eq $f.Status "inactive"}}Removed in Penlumen School, so they can't sign in.{{else if $f.HasLogin}}They have a {{if $student}}PIN{{else}}password{{end}}. Set a new one if it's forgotten.{{else}}No {{if $student}}PIN{{else}}password{{end}} yet{{if not $local}}: they can only sign in through the school portal, while it's up{{end}}.{{end}}</p>
+        <label class="field">New {{if $student}}PIN{{else}}password{{end}} <span class="hint">Leave empty to make one.</span>
+          <input class="input" name="password" type="text" {{if $student}}inputmode="numeric"{{end}} autocomplete="off">
+          {{template "err" index .Errors "new_password"}}
+        </label>
+        <button class="btn btn-outline" type="submit">Set {{if $student}}PIN{{else}}password{{end}}</button>
+      </form>
+      {{if $local}}
+      <form class="card flex flex-col gap-3 p-5" method="post" action="/people/{{$f.ID}}/delete">
+        <h2 class="font-medium">Remove</h2>
+        <p class="text-sm text-fg-2">They can't sign in any more. {{if $student}}Their past exams and marks are kept.{{end}}</p>
+        <button class="btn btn-danger" type="submit">{{template "i-trash"}}Remove {{$f.Name}}</button>
+      </form>
+      {{end}}
+    </aside>
+    {{end}}
+  </div>
+{{template "staff-end"}}
+{{template "foot"}}

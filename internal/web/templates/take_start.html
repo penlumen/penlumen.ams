@@ -1,0 +1,50 @@
+{{template "head" .A.Title}}
+{{template "topbar" .}}
+<main class="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
+  {{template "back" (dict "Href" "/" "Label" "My exams")}}
+  <section class="card flex flex-wrap overflow-hidden" aria-labelledby="title">
+    <div class="flex min-w-0 flex-[999_1_420px] flex-col gap-5 p-6">
+      <div class="flex flex-wrap items-center gap-2">
+        {{if eq .Window "open"}}<span class="pill bg-ok-bg text-ok">Open now</span><span class="text-sm text-muted">Closes at {{clock .A.ClosesAt}}</span>
+        {{else if eq .Window "upcoming"}}<span class="pill bg-accent text-accent-fg">Coming up</span><span class="text-sm text-muted">Opens {{when .A.OpensAt}}</span>
+        {{else}}<span class="pill bg-muted-bg text-muted">Closed</span>{{end}}
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="tile">{{template "i-clipboard"}}</span>
+        <div>
+          <h1 id="title" class="text-xl font-semibold">{{.A.Subject}} · {{.A.Title}}</h1>
+          <p class="text-sm text-muted">{{kindName .A.Kind}}</p>
+        </div>
+      </div>
+      {{template "tiles" .A}}
+      {{template "error-box" .Notice}}
+      {{if eq .Window "open"}}
+        {{if .A.Settings.Proctoring}}
+        <div class="flex flex-col gap-3 rounded-[10px] border border-line bg-soft p-4">
+          <p class="font-medium">This exam uses your camera, microphone and screen</p>
+          <p class="text-[13px] text-fg-2">While you write, your invigilator is told if you leave the page, if there's talking or noise, or if your camera, microphone or screen sharing stops. A photo of you and of your screen is taken only when that happens, plus one photo of you at the start. Sound is never recorded. Photos and alerts are deleted 30 days after the exam closes.</p>
+          <div class="flex flex-wrap items-center gap-3">
+            <button class="btn btn-outline" type="button" data-proctor-check>{{template "i-screen"}}Check camera, microphone and screen</button>
+            <span class="text-[13px] text-muted data-[ok=false]:text-danger data-[ok=true]:text-ok" data-proctor-status role="status">Start opens once all three work. Share your entire screen.</span>
+          </div>
+          <video class="h-28 w-40 rounded-md bg-black object-cover" data-proctor-preview autoplay muted playsinline hidden></video>
+        </div>
+        {{end}}
+        <form class="flex flex-wrap items-center gap-x-4 gap-y-3" method="post" action="/take/{{.A.ID}}/start">
+          <label class="inline-flex h-10 cursor-pointer items-center gap-2.5"><input class="size-4 accent-primary" type="checkbox" name="agree" required> I've read the rules</label>
+          <button class="btn btn-primary btn-lg" type="submit"{{if .A.Settings.Proctoring}} disabled data-proctor-gate{{end}}>Start exam</button>
+        </form>
+      {{else if eq .Window "upcoming"}}
+        <p class="text-muted">It opens {{when .A.OpensAt}}. Come back then.</p>
+      {{else}}
+        <p class="text-muted">This has closed, and you didn't sit it.</p>
+      {{end}}
+    </div>
+    <div class="flex flex-[1_1_280px] flex-col gap-4 border-t border-line bg-soft p-6 sm:border-t-0 sm:border-l">
+      <h2 class="font-medium">Before you start</h2>
+      {{template "rules" .A.ClosesAt}}
+    </div>
+  </section>
+</main>
+{{if .A.Settings.Proctoring}}<script src="/static/proctor.js" defer></script>{{end}}
+{{template "foot"}}

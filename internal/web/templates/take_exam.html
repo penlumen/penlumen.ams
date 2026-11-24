@@ -1,0 +1,136 @@
+{{template "head" .A.Title}}
+<div data-exam data-attempt="{{.Attempt.ID}}" data-seconds-left="{{.SecondsLeft}}"{{if .A.Settings.Proctoring}} data-proctor data-monitored="{{.Monitored}}"{{end}}>
+  <header class="sticky top-0 z-10 border-b border-line bg-card">
+    <div class="mx-auto flex min-h-14 max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2">
+      <div class="flex min-w-0 items-center gap-3">
+        <span class="tile size-9 [&_svg]:size-4">{{template "i-clipboard"}}</span>
+        <div class="flex min-w-0 flex-col leading-tight">
+          <span class="truncate font-medium">{{.A.Subject}} · {{.A.Title}}</span>
+          <span class="text-xs text-muted">{{with .User.Class}}{{.Name}} · {{end}}{{.A.DurationMinutes}} minutes · {{num .A.TotalMarks}} marks</span>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+        {{if .A.Settings.Proctoring}}<span class="flex items-center gap-2 text-xs text-muted" hidden><video class="h-9 w-12 rounded-md bg-black object-cover" data-proctor-self autoplay muted playsinline aria-label="Your camera"></video>Monitoring on</span>{{end}}
+        <span class="inline-flex items-center gap-1.5 text-xs text-ok data-[warn=true]:text-warn" data-save-state role="status">{{template "i-check"}}<span data-save-text>All answers saved</span></span>
+        <span class="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 font-semibold tabular-nums text-accent-fg data-[warn=true]:bg-danger-bg data-[warn=true]:text-danger" role="timer" aria-label="Time left" data-timer-box>{{template "i-clock"}}<span data-timer>--:--</span></span>
+        {{with .User}}<span class="hidden items-center gap-2 sm:flex">{{template "avatar" .Name}}<span class="flex flex-col leading-tight"><span class="font-medium">{{.Name}}</span><span class="text-xs text-muted">{{.RegNumber}}</span></span></span>{{end}}
+      </div>
+    </div>
+  </header>
+
+  {{if .A.Settings.Proctoring}}
+  <div class="mx-auto mt-4 flex max-w-6xl flex-wrap items-center justify-between gap-3 rounded-[10px] border border-danger-line bg-danger-bg px-4 py-3 text-sm text-danger" role="alert" hidden data-proctor-banner>
+    <span>Your camera, microphone or screen sharing has stopped. Your invigilator has been told. Keep writing, and share again.</span>
+    <span class="flex items-center gap-2"><span class="text-xs" data-proctor-banner-status></span><button class="btn btn-outline btn-sm" type="button" data-proctor-reshare>Share again</button></span>
+  </div>
+  <div class="fixed inset-0 z-30 flex items-center justify-center bg-bg p-6" hidden data-proctor-overlay>
+    <div class="card flex w-full max-w-md flex-col items-center gap-3 p-8 text-center" role="dialog" aria-modal="true" aria-labelledby="proctor-title">
+      <span class="tile">{{template "i-screen"}}</span>
+      <h2 id="proctor-title" class="mt-2 text-lg font-semibold">Turn on your camera, microphone and screen</h2>
+      <p class="text-sm text-muted">This exam is monitored. Allow all three, and share your entire screen, to see the questions.</p>
+      <button class="btn btn-primary btn-lg w-full" type="button" data-proctor-share>Share and continue</button>
+      <p class="text-[13px] text-danger" data-proctor-overlay-status role="status"></p>
+    </div>
+  </div>
+  {{end}}
+  <form class="mx-auto max-w-6xl px-4 py-6" method="post" action="/attempts/{{.Attempt.ID}}/submit" data-exam-form>
+    <div class="flex flex-wrap items-start gap-6">
+      <div class="flex min-w-0 flex-[999_1_480px] flex-col gap-4">
+        {{range .Questions}}
+        <section class="card flex flex-col gap-5 p-6" id="q{{.Number}}" data-question="{{.ID}}" data-kind="{{.Kind}}" aria-labelledby="qt{{.Number}}">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="pill bg-accent text-accent-fg">Section {{.Section}} · {{if .IsTheory}}Theory{{else}}Objective{{end}}</span>
+              <span class="font-medium text-fg-2">Question {{.Number}} of {{len $.Questions}}</span>
+              <span class="text-xs text-muted">· {{num .Marks}} {{if eq .Marks 1.0}}mark{{else}}marks{{end}}</span>
+            </div>
+            <label class="group btn btn-outline btn-sm relative has-checked:border-flag has-checked:bg-warn-bg has-checked:text-warn has-focus-visible:outline-2 has-focus-visible:outline-focus">
+              <input class="sr-only" type="checkbox" name="flag_{{.ID}}" value="1" {{if .Flagged}}checked{{end}} data-flag>
+              {{template "i-flag"}}<span class="group-has-checked:hidden">Flag for review</span><span class="hidden group-has-checked:inline">Flagged</span>
+            </label>
+          </div>
+          <h1 id="qt{{.Number}}" class="rich text-lg leading-snug font-medium" data-q-text>{{rich .Body}}</h1>
+          {{if .IsTheory}}
+          <div class="flex flex-col gap-1.5">
+            {{template "editor" (dict "Name" (printf "t_%s" .ID) "ID" (printf "t%d" .Number) "Value" .Text "Label" (printf "Your answer to question %d" .Number) "Upload" (printf "/attempts/%s/images" $.Attempt.ID) "Text" true "Rows" 10)}}
+            <span class="text-xs text-muted"><span data-words>0</span> words · saves as you type · add a picture of a diagram or working with Picture</span>
+          </div>
+          {{else}}
+          <div class="flex flex-col gap-2.5" role="radiogroup" aria-labelledby="qt{{.Number}}">
+            {{$q := .}}
+            {{range $j, $o := .Options}}
+            <label class="group relative flex min-h-12 cursor-pointer items-center gap-3 rounded-[10px] border border-line bg-card px-4 py-2.5 text-[15px] hover:border-hover-line has-checked:border-primary has-checked:bg-accent has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-focus">
+              <input class="sr-only" type="radio" name="q_{{$q.ID}}" value="{{$j}}" {{if eq $q.Chosen $j}}checked{{end}}>
+              <span class="flex size-7 shrink-0 items-center justify-center rounded-full border border-line-strong text-xs font-semibold text-fg-2 group-has-checked:border-primary group-has-checked:bg-primary group-has-checked:text-on-primary">{{letter $j}}</span>
+              <span>{{$o}}</span>
+            </label>
+            {{end}}
+          </div>
+          {{end}}
+          <div class="flex flex-wrap justify-between gap-3 border-t border-line pt-4" hidden data-step-buttons>
+            <button class="btn btn-outline" type="button" data-prev>{{template "i-left"}}Previous</button>
+            <button class="btn btn-primary" type="button" data-next><span data-next-label>Next question</span>{{template "i-right"}}</button>
+          </div>
+        </section>
+        {{end}}
+      </div>
+
+      <aside class="flex max-w-full flex-[1_1_280px] flex-col gap-4 lg:sticky lg:top-20">
+        <nav class="card flex flex-col gap-4 p-5" aria-label="Question navigator">
+          <div class="flex flex-col gap-2">
+            <div class="flex items-baseline justify-between">
+              <span class="font-medium">Questions</span>
+              <span class="text-xs text-muted"><span data-answered>0</span> of {{len .Questions}} answered</span>
+            </div>
+            <div class="flex gap-[3px]" aria-hidden="true">
+              {{range .Questions}}<span class="h-1.5 flex-1 rounded-full bg-line data-[filled=true]:bg-primary" data-seg></span>{{end}}
+            </div>
+          </div>
+          {{template "nav-group" (dict "Label" "Section A · Objective" "Kind" "objective" "Qs" .Questions "Count" .Objective)}}
+          {{template "nav-group" (dict "Label" "Section B · Theory" "Kind" "theory" "Qs" .Questions "Count" .Theory)}}
+          <div class="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted">
+            <span class="inline-flex items-center gap-1.5"><i class="size-2.5 rounded-sm bg-primary"></i>Answered</span>
+            <span class="inline-flex items-center gap-1.5"><i class="size-2.5 rounded-sm border border-line-strong"></i>Not answered</span>
+            <span class="inline-flex items-center gap-1.5"><i class="size-2 rounded-full bg-flag"></i>Flagged</span>
+          </div>
+          <button class="btn btn-primary w-full" type="submit">Submit exam</button>
+        </nav>
+        <div class="card flex gap-3 p-4 text-xs leading-relaxed text-muted [&_svg]:mt-0.5 [&_svg]:text-primary">
+          {{template "i-info"}}
+          <span>If your connection drops, keep going. Answers are kept on this device and sent when you're back online. The timer is kept by the school's server, so refreshing won't reset it.</span>
+        </div>
+      </aside>
+    </div>
+  </form>
+
+  <div class="fixed inset-0 z-20 flex items-center justify-center bg-black/40 p-6" hidden data-confirm>
+    <div class="card flex w-full max-w-md flex-col gap-4 p-6 shadow-lg" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+      <h2 id="confirm-title" class="text-lg font-semibold">Submit your exam?</h2>
+      <p class="text-muted">You've answered <strong class="text-fg" data-confirm-answered></strong> of {{len .Questions}} questions. Once you submit, you can't change your answers.</p>
+      <div class="rounded-[10px] bg-warn-bg px-3.5 py-3 text-sm text-warn" data-confirm-gaps hidden></div>
+      <div class="flex flex-wrap justify-end gap-2">
+        <button class="btn btn-outline" type="button" data-cancel>Keep working</button>
+        <button class="btn btn-primary" type="button" data-confirm-submit>Submit exam</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/static/exam.js" defer></script>
+{{/* After exam.js, which may put back answers kept on this computer. */}}
+<script src="/static/editor.js" defer></script>
+{{if .A.Settings.Proctoring}}<script src="/static/proctor.js" defer></script>{{end}}
+{{template "foot"}}
+
+{{define "nav-group"}}
+{{if .Count}}
+<div class="flex flex-col gap-2">
+  <span class="text-[11px] font-medium tracking-wide text-muted uppercase">{{.Label}}</span>
+  <div class="grid grid-cols-6 gap-1.5">
+    {{$kind := .Kind}}
+    {{range .Qs}}{{if eq .Kind $kind}}
+    <a class="relative flex h-9 items-center justify-center rounded-md border border-line bg-card text-[13px] font-medium text-fg-2 no-underline data-[answered=true]:border-primary data-[answered=true]:bg-primary data-[answered=true]:text-on-primary data-[current=true]:ring-2 data-[current=true]:ring-focus data-[current=true]:ring-offset-2 data-[flagged=true]:after:absolute data-[flagged=true]:after:-top-1 data-[flagged=true]:after:-right-1 data-[flagged=true]:after:size-2.5 data-[flagged=true]:after:rounded-full data-[flagged=true]:after:border-2 data-[flagged=true]:after:border-card data-[flagged=true]:after:bg-flag data-[flagged=true]:after:content-['']" href="#q{{.Number}}" data-goto="{{.Number}}" aria-label="Question {{.Number}}">{{.Number}}</a>
+    {{end}}{{end}}
+  </div>
+</div>
+{{end}}
+{{end}}

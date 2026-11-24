@@ -1,0 +1,37 @@
+{{template "head" "Set up"}}
+<main class="flex min-h-screen items-center justify-center p-4">
+  <div class="card flex w-full max-w-md flex-col gap-5 p-8">
+    <div class="flex flex-col gap-1.5">
+      <span class="tile">{{template "i-clipboard"}}</span>
+      <h1 class="mt-2 text-xl font-semibold">Set up Exams</h1>
+      <p class="text-muted">Name your school and create the first administrator. You'll add classes, terms, staff and students next.</p>
+    </div>
+    {{with .Errors}}{{template "error-box" "Check the highlighted fields."}}{{end}}
+    <form class="flex flex-col gap-4" method="post" action="/setup" novalidate>
+      <label class="field">School name
+        <input class="input" name="school" value="{{index .F "school"}}" required autofocus>
+        {{template "err" index .Errors "school"}}
+      </label>
+      <label class="field">Your name
+        <input class="input" name="name" value="{{index .F "name"}}" autocomplete="name" required>
+        {{template "err" index .Errors "name"}}
+      </label>
+      <label class="field">Your email <span class="hint">You sign in with it.</span>
+        <input class="input" name="email" type="email" value="{{index .F "email"}}" autocomplete="username" required>
+        {{template "err" index .Errors "email"}}
+      </label>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="field">Password
+          <input class="input" name="password" type="password" autocomplete="new-password" minlength="8" required>
+          {{template "err" index .Errors "password"}}
+        </label>
+        <label class="field">Again
+          <input class="input" name="confirm" type="password" autocomplete="new-password" required>
+          {{template "err" index .Errors "confirm"}}
+        </label>
+      </div>
+      <button class="btn btn-primary btn-lg w-full" type="submit">Create and sign in</button>
+    </form>
+  </div>
+</main>
+{{template "foot"}}

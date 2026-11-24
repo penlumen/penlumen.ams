@@ -1,0 +1,154 @@
+{{template "head" "People"}}
+{{template "staff-start" .}}
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    {{template "page-title" (dict "Title" "People" "Sub" (or (and .Portal "Students and staff can sign in here with an AMS PIN or password, whether or not Penlumen School is up. Those from Penlumen School change there.") "Students and staff who sign in to Exams, with the classes and terms they belong to."))}}
+    {{if eq .Tab "students"}}<a class="btn btn-primary" href="/people/new{{with .ClassFilter}}?class={{.}}{{end}}">{{template "i-plus"}}Add student</a>{{end}}
+    {{if eq .Tab "staff"}}<a class="btn btn-primary" href="/people/new?role=staff">{{template "i-plus"}}Add staff</a>{{end}}
+  </div>
+
+  {{if .Portal}}
+  <div class="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-line bg-card px-4 py-3 text-sm" role="status">
+    <span>
+      {{with .Sync}}{{if .Error}}<span class="font-medium text-warn">Penlumen School couldn't be reached</span> ({{when .At}}). Exams keeps working with the last copy.
+      {{else if not .At.IsZero}}Up to date with Penlumen School · {{when .At}}{{else}}Syncing with Penlumen School…{{end}}{{end}}
+    </span>
+    <form method="post" action="/sync"><button class="btn btn-outline btn-sm" type="submit">Sync now</button></form>
+  </div>
+  {{end}}
+  {{template "notice" .Notice}}
+
+  <nav class="flex flex-wrap gap-1 border-b border-line" aria-label="People">
+    {{range $t := (list "staff" "students" "classes" "terms")}}
+    <a class="-mb-px border-b-2 px-3 py-2 text-sm font-medium no-underline {{if eq $t $.Tab}}border-primary text-fg{{else}}border-transparent text-muted hover:text-fg{{end}}" href="/people?tab={{$t}}" {{if eq $t $.Tab}}aria-current="page"{{end}}>{{title $t}}</a>
+    {{end}}
+  </nav>
+
+  {{if or (eq .Tab "students") (eq .Tab "staff")}}
+    {{if eq .Tab "students"}}
+    <form class="flex flex-wrap items-center gap-2" method="get" action="/people">
+      <input type="hidden" name="tab" value="students">
+      <label class="sr-only" for="class">Class</label>
+      <select class="input w-auto" id="class" name="class" onchange="this.form.submit()">
+        <option value="">Every class</option>
+        {{range .Classes}}<option value="{{.UUID}}" {{if eq .UUID $.ClassFilter}}selected{{end}}>{{.Name}}</option>{{end}}
+      </select>
+      <noscript><button class="btn btn-outline" type="submit">Show</button></noscript>
+    </form>
+    {{end}}
+    {{if .People}}
+    <section class="card overflow-hidden" aria-label="{{title .Tab}}">
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[640px] text-sm">
+          <thead class="border-b border-line bg-soft text-left text-xs text-muted">
+            <tr class="[&>th]:px-4 [&>th]:py-2.5 [&>th]:font-medium"><th>Name</th><th>{{if eq .Tab "students"}}Class{{else}}Role{{end}}</th><th>From</th><th>Can sign in here</th><th><span class="sr-only">Actions</span></th></tr>
+          </thead>
+          <tbody class="divide-y divide-line [&_td]:px-4 [&_td]:py-3">
+            {{range .People}}
+            <tr class="hover:bg-soft {{if not .Active}}text-muted{{end}}">
+              <td><a class="font-medium text-fg no-underline hover:text-primary" href="/people/{{.UUID}}">{{.Name}}</a>
+                <div class="text-xs text-muted">{{if .IsStudent}}{{upper .RegNumber}}{{else}}{{.Email}}{{end}}</div></td>
+              <td>{{if .IsStudent}}{{or .Class "No class"}}{{else if eq .Role "admin"}}Administrator{{else if eq .Position "administrative"}}Administrative staff{{else}}Teacher{{end}}</td>
+              <td>{{if eq .Source "sms"}}<span class="pill bg-accent text-accent-fg">Penlumen School</span>{{else}}<span class="pill bg-muted-bg text-muted">Added here</span>{{end}}</td>
+              <td>{{if not .Active}}<span class="pill bg-warn-bg text-warn">Removed in Penlumen School</span>{{else if .HasPassword}}<span class="text-ok">Yes</span>{{else}}<span class="text-muted">No {{if .IsStudent}}PIN{{else}}password{{end}} yet</span>{{end}}</td>
+              <td class="text-right"><a class="btn btn-ghost btn-sm" href="/people/{{.UUID}}">{{if eq .Source "local"}}Edit{{else}}{{if .IsStudent}}Set PIN{{else}}Set password{{end}}{{end}}</a></td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    {{else}}
+    {{template "empty" (printf "No %s yet." .Tab)}}
+    {{end}}
+  {{end}}
+
+  {{if eq .Tab "classes"}}
+  <div class="flex flex-wrap items-start gap-6">
+    <section class="card min-w-0 flex-[999_1_420px] overflow-hidden" aria-label="Classes">
+      {{if .Classes}}
+      <ul class="divide-y divide-line">
+        {{range .Classes}}
+        <li class="flex flex-wrap items-start justify-between gap-3 px-4 py-3">
+          <div class="min-w-0">
+            <span class="font-medium">{{.Name}}</span>{{if gt (len $.Branches) 1}}<span class="text-xs text-muted"> · {{index $.BranchNames .BranchUUID}}</span>{{end}}
+            <ul class="mt-1 flex flex-col gap-0.5 text-xs text-muted">
+              {{$teachers := .Teachers}}
+              {{range .Subjects}}<li>{{.}} · {{with index $teachers .}}<span class="text-fg-2">{{or (index $.StaffNames .) "a staff member"}}</span>{{else}}<span class="text-warn">no teacher yet</span>{{end}}</li>{{end}}
+            </ul>
+            {{if eq .Source "local"}}
+            <details class="mt-2">
+              <summary class="w-fit cursor-pointer text-xs font-medium text-primary">Assign teachers</summary>
+              <form class="mt-2 flex flex-col gap-2" method="post" action="/classes/{{.UUID}}/teachers">
+                {{range .Subjects}}
+                <label class="flex flex-wrap items-center justify-between gap-2 text-sm">{{.}}
+                  <select class="input w-56" name="teacher:{{.}}">
+                    <option value="">No teacher yet</option>
+                    {{$subject := .}}{{range $.Staff}}<option value="{{.UUID}}" {{if eq .UUID (index $teachers $subject)}}selected{{end}}>{{.Name}}</option>{{end}}
+                  </select>
+                </label>
+                {{end}}
+                <button class="btn btn-outline btn-sm w-fit" type="submit">Save teachers</button>
+              </form>
+            </details>
+            {{end}}
+          </div>
+          <div class="flex items-center gap-2">
+            {{if eq .Source "sms"}}<span class="pill bg-accent text-accent-fg">Penlumen School</span>
+            {{else}}
+            <a class="btn btn-ghost btn-sm" href="/people?tab=students&amp;class={{.UUID}}">Students</a>
+            <form method="post" action="/classes/{{.UUID}}/delete"><button class="btn btn-ghost btn-sm px-2 text-muted hover:text-danger" type="submit" aria-label="Remove {{.Name}}">{{template "i-trash"}}</button></form>
+            {{end}}
+          </div>
+        </li>
+        {{end}}
+      </ul>
+      {{else}}<p class="p-5 text-muted">No classes yet.</p>{{end}}
+    </section>
+    <form class="card flex flex-[1_1_280px] flex-col gap-4 p-5" method="post" action="/classes">
+      <h2 class="font-medium">Add a class</h2>
+      <label class="field">Name <input class="input" name="name" placeholder="e.g. JSS 1A" required></label>
+      {{if gt (len .Branches) 1}}
+      <label class="field">Branch
+        <select class="input" name="branch">{{range .Branches}}<option value="{{.UUID}}">{{.Name}}</option>{{end}}</select>
+      </label>
+      {{end}}
+      <label class="field">Subjects <span class="hint">One per line.</span>
+        <textarea class="input" name="subjects" rows="6" placeholder="Mathematics&#10;English Language&#10;Basic Science" required></textarea>
+      </label>
+      <button class="btn btn-primary" type="submit">Add class</button>
+    </form>
+  </div>
+  {{end}}
+
+  {{if eq .Tab "terms"}}
+  <div class="flex flex-wrap items-start gap-6">
+    <section class="card min-w-0 flex-[999_1_420px] overflow-hidden" aria-label="Terms">
+      {{if .Terms}}
+      <ul class="divide-y divide-line">
+        {{range .Terms}}
+        <li class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+          <span><span class="font-medium">{{.Session}} {{.Term}}</span>{{if gt (len $.Branches) 1}}<span class="text-xs text-muted"> · {{index $.BranchNames .BranchUUID}}</span>{{end}}
+            {{if eq .Status "ACTIVE"}}<span class="pill ml-1 bg-ok-bg text-ok">Current</span>{{end}}</span>
+          {{if eq .Source "sms"}}<span class="pill bg-accent text-accent-fg">Penlumen School</span>
+          {{else}}<form method="post" action="/terms/{{.UUID}}/delete"><button class="btn btn-ghost btn-sm px-2 text-muted hover:text-danger" type="submit" aria-label="Remove {{.Session}} {{.Term}}">{{template "i-trash"}}</button></form>{{end}}
+        </li>
+        {{end}}
+      </ul>
+      {{else}}<p class="p-5 text-muted">No terms yet.</p>{{end}}
+    </section>
+    <form class="card flex flex-[1_1_280px] flex-col gap-4 p-5" method="post" action="/terms">
+      <h2 class="font-medium">Add a term</h2>
+      <label class="field">Session <input class="input" name="session" placeholder="e.g. 2026/2027" required></label>
+      <label class="field">Term <input class="input" name="term" placeholder="e.g. First Term" required></label>
+      {{if gt (len .Branches) 1}}
+      <label class="field">Branch
+        <select class="input" name="branch">{{range .Branches}}<option value="{{.UUID}}">{{.Name}}</option>{{end}}</select>
+      </label>
+      {{end}}
+      <label class="flex items-center gap-2.5 text-sm"><input class="size-4 accent-primary" type="checkbox" name="current" checked> The current term</label>
+      <button class="btn btn-primary" type="submit">Add term</button>
+    </form>
+  </div>
+  {{end}}
+{{template "staff-end"}}
+{{template "foot"}}

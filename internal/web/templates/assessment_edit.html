@@ -1,0 +1,253 @@
+{{template "head" .A.Title}}
+{{template "staff-start" .}}
+  {{$draft := eq .A.Status "draft"}}
+  {{$id := .A.ID}}
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div class="flex flex-col gap-1.5">
+      {{template "back" (dict "Href" "/" "Label" "Assessments")}}
+      <div class="flex flex-wrap items-center gap-2.5">
+        <h1 class="text-xl font-semibold">{{.A.Subject}} · {{.A.Title}}</h1>
+        {{template "status-pill" .Window}}
+      </div>
+      <p class="text-muted">{{.Class}} · {{.Term}} · {{len .Objective}} objective, {{len .Theory}} theory · {{num .A.TotalMarks}} marks</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      {{if .CanEdit}}<a class="btn btn-outline" href="/assessments/{{.A.ID}}/details">{{template "i-edit"}}Edit details</a>{{end}}
+      <a class="btn btn-outline" href="/assessments/{{.A.ID}}/questions.csv">{{template "i-download"}}Export CSV</a>
+      {{if eq .Window "open"}}<a class="btn btn-outline" href="/monitor/{{.A.ID}}">{{template "i-pulse"}}Monitoring</a>{{end}}
+      {{if not $draft}}<a class="btn btn-outline" href="/assessments/{{.A.ID}}/submissions">Submissions</a>{{end}}
+    </div>
+  </div>
+
+  {{template "notice" .Notice}}
+  {{with .ImportErrors}}
+  <div class="card flex flex-col gap-2 border-warn/40 p-4" role="alert">
+    <span class="font-medium text-warn">These rows weren't imported</span>
+    <ul class="list-disc pl-5 text-sm text-fg-2">{{range .}}<li>Row {{.Row}}: {{.Message}}</li>{{end}}</ul>
+  </div>
+  {{end}}
+
+  <div class="flex flex-wrap items-start gap-6">
+    <div class="flex min-w-0 flex-[999_1_480px] flex-col gap-5">
+
+      <section class="card flex flex-col gap-4 p-5" id="objective" aria-labelledby="sec-a">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="flex flex-col gap-0.5">
+            <h2 id="sec-a" class="font-medium">Section A · Objective</h2>
+            <span class="text-xs text-muted">{{len .Objective}} questions · {{num .ObjMarks}} marks · marked automatically</span>
+          </div>
+          {{if $draft}}
+          <div class="flex flex-wrap gap-2">
+            <details class="group relative">
+              <summary class="btn btn-outline btn-sm list-none [&::-webkit-details-marker]:hidden">{{template "i-upload"}}Import CSV</summary>
+              <form class="card absolute right-0 z-10 mt-2 flex w-80 flex-col gap-3 p-4 shadow-lg" method="post" action="/assessments/{{.A.ID}}/import" enctype="multipart/form-data">
+                <p class="text-sm text-fg-2">Objective and theory questions from a spreadsheet saved as CSV. <a href="/questions-template.csv">Download the template</a>.</p>
+                <input class="text-sm file:mr-3 file:rounded-md file:border file:border-line file:bg-card file:px-3 file:py-1.5 file:text-sm" type="file" name="file" accept=".csv,text/csv" required>
+                <button class="btn btn-primary btn-sm" type="submit">Import</button>
+              </form>
+            </details>
+          </div>
+          {{end}}
+        </div>
+
+        {{range $i, $q := .Objective}}
+        <div class="flex scroll-mt-4 flex-col gap-3 rounded-[10px] border border-line px-4 py-3.5" id="q-{{$q.ID}}">
+          <div class="flex items-start justify-between gap-3">
+            {{template "q-body" (dict "N" (inc $i) "Body" $q.Body)}}
+            {{template "q-tools" (dict "Draft" $draft "ID" $id "Q" $q "N" (inc $i))}}
+          </div>
+          <ul class="grid grid-cols-1 gap-x-4 gap-y-1.5 text-fg-2 sm:grid-cols-2">
+            {{range $j, $o := $q.Options}}
+            <li class="group flex min-w-0 items-center gap-2 data-[right=true]:font-medium data-[right=true]:text-ok" data-right="{{isRight $q $j}}"><span class="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-line-strong text-xs font-medium group-data-[right=true]:border-ok-solid group-data-[right=true]:bg-ok-solid group-data-[right=true]:text-white">{{letter $j}}</span><span>{{$o}}{{if isRight $q $j}}<span class="sr-only"> (right answer)</span>{{end}}</span></li>
+            {{end}}
+          </ul>
+          {{if $draft}}{{template "q-edit" (dict "ID" $id "Q" $q "F" (index $.Forms $q.ID) "N" (inc $i))}}{{end}}
+        </div>
+        {{else}}
+        <p class="text-muted">No objective questions yet.</p>
+        {{end}}
+
+        {{if $draft}}
+        <details class="group" {{if .Q.Error}}open{{end}}>
+          <summary class="btn btn-outline w-full list-none border-dashed group-open:hidden [&::-webkit-details-marker]:hidden">{{template "i-plus"}}Add objective question</summary>
+          <form class="flex flex-col gap-4 rounded-[10px] border border-line p-4" method="post" action="/assessments/{{.A.ID}}/questions">
+            <input type="hidden" name="kind" value="objective">
+            <h3 class="font-medium">New objective question</h3>
+            {{template "q-fields" (dict "ID" $id "F" .Q "P" "new-obj")}}
+            {{template "q-footer" (dict "F" .Q "Button" "Add question")}}
+          </form>
+        </details>
+        {{end}}
+      </section>
+
+      <section class="card flex flex-col gap-4 p-5" id="theory" aria-labelledby="sec-b">
+        <div class="flex flex-col gap-0.5">
+          <h2 id="sec-b" class="font-medium">Section B · Theory</h2>
+          <span class="text-xs text-muted">{{len .Theory}} questions · {{num .TheoryMarks}} marks · written answers, marked by a teacher</span>
+        </div>
+        {{range $i, $q := .Theory}}
+        <div class="flex scroll-mt-4 flex-col gap-2 rounded-[10px] border border-line px-4 py-3.5" id="q-{{$q.ID}}">
+          <div class="flex items-start justify-between gap-3">
+            {{template "q-body" (dict "N" (inc $i) "Body" $q.Body)}}
+            {{template "q-tools" (dict "Draft" $draft "ID" $id "Q" $q "N" (inc $i))}}
+          </div>
+          {{with $q.Guide}}<p class="rounded-md bg-soft px-3 py-2 text-[13px] whitespace-pre-line text-fg-2"><span class="font-medium text-fg">Marking guide:</span> {{.}}</p>{{end}}
+          {{if $draft}}{{template "q-edit" (dict "ID" $id "Q" $q "F" (index $.Forms $q.ID) "N" (inc $i))}}{{end}}
+        </div>
+        {{else}}
+        <p class="text-muted">No theory questions. Add one for essay answers.</p>
+        {{end}}
+
+        {{if $draft}}
+        <details class="group" {{if .T.Error}}open{{end}}>
+          <summary class="btn btn-outline w-full list-none border-dashed group-open:hidden [&::-webkit-details-marker]:hidden">{{template "i-plus"}}Add theory question</summary>
+          <form class="flex flex-col gap-4 rounded-[10px] border border-line p-4" method="post" action="/assessments/{{.A.ID}}/questions">
+            <input type="hidden" name="kind" value="theory">
+            <h3 class="font-medium">New theory question</h3>
+            {{template "q-fields" (dict "ID" $id "F" .T "P" "new-theory")}}
+            {{template "q-footer" (dict "F" .T "Button" "Add question")}}
+          </form>
+        </details>
+        {{end}}
+      </section>
+    </div>
+
+    <aside class="flex max-w-full flex-[1_1_280px] flex-col gap-4">
+      <section class="card flex flex-col gap-3 p-5" aria-labelledby="status">
+        <div class="flex items-center justify-between">
+          <h2 id="status" class="font-medium">Status</h2>
+          {{template "status-pill" .Window}}
+        </div>
+        <form method="post" action="/assessments/{{.A.ID}}/status" class="flex flex-col gap-3">
+        {{if eq .Window "draft"}}
+          <p class="text-sm text-fg-2">Only you can see it. Schedule it when the questions are ready; students see it and can start once it opens.</p>
+          <button class="btn btn-primary" name="action" value="schedule" type="submit">Schedule exam</button>
+        {{else if eq .Window "upcoming"}}
+          <p class="text-sm text-fg-2">Opens {{when .A.OpensAt}}. Questions are locked; take it back to draft to change them.</p>
+          {{if .CanEdit}}<button class="btn btn-outline" name="action" value="unschedule" type="submit">Back to draft</button>{{end}}
+        {{else if eq .Window "open"}}
+          <p class="text-sm text-fg-2">Students are writing. It closes at {{clock .A.ClosesAt}}.</p>
+          <button class="btn btn-danger" name="action" value="close" type="submit">End exam now</button>
+        {{else if eq .Window "closed"}}
+          <p class="text-sm text-fg-2">Ended {{when .A.ClosesAt}}. Mark any theory answers, then send the scores from Submissions.</p>
+        {{else}}
+          <p class="text-sm text-fg-2">Scores were sent{{with .A.PublishedAt}} {{when .}}{{end}}.</p>
+        {{end}}
+        </form>
+        {{if ne .Window "draft"}}
+        <form method="post" action="/assessments/{{.A.ID}}/status" class="flex flex-col gap-2 border-t border-line pt-3">
+          <input type="hidden" name="action" value="closes">
+          <label class="field">{{if or (eq .Window "closed") (eq .Window "published")}}Reopen until{{else}}Change closing time{{end}}
+            <input class="input" type="datetime-local" name="closes_at" value="{{formTime .A.ClosesAt}}">
+          </label>
+          <button class="btn btn-outline btn-sm" type="submit">{{if or (eq .Window "closed") (eq .Window "published")}}Reopen{{else}}Save closing time{{end}}</button>
+        </form>
+        {{end}}
+        <details class="group border-t border-line pt-3">
+          <summary class="btn btn-ghost btn-sm w-full list-none text-danger hover:bg-danger-bg group-open:hidden [&::-webkit-details-marker]:hidden">{{template "i-trash"}}Delete assessment</summary>
+          <form class="flex flex-col gap-3 rounded-[10px] border border-danger-line bg-danger-bg/40 p-3.5" method="post" action="/assessments/{{.A.ID}}/delete">
+            <p class="text-sm font-medium text-danger">Delete it for good?</p>
+            <p class="text-[13px] text-fg-2">The questions and every student's answers and marks are deleted. This can't be undone.{{if .A.PublishedAt}} The scores already sent are taken off report cards too (approved report cards keep them).{{end}}</p>
+            <label class="flex items-start gap-2 text-[13px]"><input class="mt-0.5 size-4 accent-danger" type="checkbox" name="confirm" required> I understand this can't be undone</label>
+            <button class="btn btn-sm border-danger bg-danger text-white hover:opacity-90" type="submit">Delete permanently</button>
+          </form>
+        </details>
+      </section>
+
+      <section class="card flex flex-col gap-4 p-5" aria-labelledby="settings">
+        <h2 id="settings" class="font-medium">Settings</h2>
+        <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 [&_dt]:text-muted">
+          <dt>Class</dt><dd>{{.Class}}</dd>
+          <dt>Term</dt><dd>{{.Term}}</dd>
+          <dt>Opens</dt><dd>{{when .A.OpensAt}}</dd>
+          <dt>Closes</dt><dd>{{when .A.ClosesAt}}</dd>
+          <dt>Time</dt><dd>{{.A.DurationMinutes}} minutes</dd>
+          <dt>Type</dt><dd>{{kindName .A.Kind}}</dd>
+        </dl>
+        <div class="flex flex-col divide-y divide-line border-t border-line">
+          <div class="flex h-11 items-center justify-between gap-3">Shuffle question order{{template "switch-view" .A.Settings.ShuffleQuestions}}</div>
+          <div class="flex h-11 items-center justify-between gap-3">Show score after submitting{{template "switch-view" .A.Settings.ShowScore}}</div>
+          <div class="flex min-h-11 items-center justify-between gap-3 py-2"><span>Camera, sound and screen{{if .A.Settings.Proctoring}}<span class="hint block">Photos on alerts · kept 30 days</span>{{end}}</span>{{template "switch-view" .A.Settings.Proctoring}}</div>
+          <div class="flex min-h-11 items-center justify-between gap-3 py-2"><span>Safe Exam Browser{{if .A.Settings.RequireSEB}}<span class="hint block">{{if .A.Settings.SEBConfigKeys}}Required · Config Key checked{{else}}Required · browser check only{{end}}</span>{{end}}</span>{{template "switch-view" .A.Settings.RequireSEB}}</div>
+        </div>
+        {{if and .A.Settings.RequireSEB (ne .A.Status "draft")}}<a class="btn btn-outline btn-sm" href="/seb/{{.A.ID}}.seb">{{template "i-download"}}SEB settings file</a>{{end}}
+        <p class="rounded-[10px] bg-accent px-3.5 py-3 text-[13px] leading-relaxed text-accent-fg">Scores go to the <strong>{{if eq .A.CountsTowards "examination"}}Examination{{else}}Assessment (CA){{end}}</strong> column of each student's result, worth {{num .A.ReportMarks}} marks, when you send them.</p>
+      </section>
+    </aside>
+  </div>
+{{template "staff-end"}}
+<script src="/static/editor.js" defer></script>
+{{template "foot"}}
+
+{{define "q-tools"}}
+<div class="flex shrink-0 items-center gap-1">
+  <span class="text-xs whitespace-nowrap text-muted">{{num .Q.Marks}} {{if eq .Q.Marks 1.0}}mark{{else}}marks{{end}}</span>
+  {{if .Draft}}
+  <form method="post" action="/assessments/{{.ID}}/questions/{{.Q.ID}}/delete">
+    <button class="btn btn-ghost btn-sm px-2 text-muted hover:text-danger" type="submit" aria-label="Remove question {{.N}}">{{template "i-trash"}}</button>
+  </form>
+  {{end}}
+</div>
+{{end}}
+
+{{define "q-footer"}}
+<div class="flex flex-wrap items-end justify-between gap-3">
+  <label class="field w-28">Marks
+    <input class="input" name="marks" inputmode="decimal" value="{{.F.Marks}}">
+  </label>
+  <button class="btn btn-primary" type="submit">{{.Button}}</button>
+</div>
+{{end}}
+
+{{/* A question's number and formatted text. */}}
+{{define "q-body"}}
+<div class="flex min-w-0 gap-1.5 font-medium"><span class="shrink-0">{{.N}}.</span><div class="rich min-w-0">{{rich .Body}}</div></div>
+{{end}}
+
+{{/* A question form's fields: (dict "ID" assessmentID "F" questionForm
+   "P" unique-prefix). Objective forms have options; theory forms have a
+   marking guide. */}}
+{{define "q-fields"}}
+{{template "error-box" .F.Error}}
+<div class="field"><span>Question</span>
+  {{template "editor" (dict "Name" "body" "Value" .F.Body "Label" "Question" "Upload" (printf "/assessments/%s/images" .ID) "ID" (printf "%s-body" .P))}}
+</div>
+{{if eq .F.Kind "theory"}}
+<label class="field">Marking guide <span class="hint">What earns marks. Only teachers see it.</span>
+  <textarea class="input" name="guide" rows="3">{{.F.Guide}}</textarea>
+</label>
+{{else}}
+<fieldset class="field">
+  <legend class="mb-1.5">Options: tick the right one</legend>
+  {{$p := .P}}{{$answer := .F.Answer}}
+  {{range $j, $o := .F.Options}}
+  <div class="mb-2 flex items-center gap-2.5">
+    <input class="size-4 shrink-0 accent-ok-solid" type="radio" name="answer" value="{{$j}}" {{if eq $answer (printf "%d" $j)}}checked{{end}} aria-label="Option {{letter $j}} is right">
+    <label for="{{$p}}-opt{{$j}}" class="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-line-strong text-xs font-medium">{{letter $j}}</label>
+    <input class="input" id="{{$p}}-opt{{$j}}" name="option" value="{{$o}}" placeholder="{{if lt $j 2}}Required{{else}}Optional{{end}}">
+  </div>
+  {{end}}
+</fieldset>
+{{end}}
+{{end}}
+
+{{/* Editing a saved question, in place: (dict "ID" assessmentID "Q" question
+   "F" its form "N" its number). */}}
+{{define "q-edit"}}
+<details class="group/edit" {{if .F.Error}}open{{end}}>
+  <summary class="btn btn-ghost btn-sm w-fit list-none px-2 text-muted group-open/edit:hidden [&::-webkit-details-marker]:hidden">{{template "i-edit"}}Edit<span class="sr-only"> question {{.N}}</span></summary>
+  <form class="flex flex-col gap-4 rounded-[10px] border border-line bg-soft p-4" method="post" action="/assessments/{{.ID}}/questions/{{.Q.ID}}">
+    <h3 class="font-medium">Edit question {{.N}}</h3>
+    {{template "q-fields" (dict "ID" .ID "F" .F "P" (printf "q-%s" .Q.ID))}}
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <label class="field w-28">Marks
+        <input class="input" name="marks" inputmode="decimal" value="{{.F.Marks}}">
+      </label>
+      <div class="flex gap-2">
+        <a class="btn btn-outline" href="/assessments/{{.ID}}#q-{{.Q.ID}}" data-edit-cancel>Cancel</a>
+        <button class="btn btn-primary" type="submit">Save changes</button>
+      </div>
+    </div>
+  </form>
+</details>
+{{end}}

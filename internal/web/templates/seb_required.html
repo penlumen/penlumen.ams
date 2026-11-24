@@ -1,0 +1,13 @@
+{{template "head" .A.Title}}
+{{template "topbar" .}}
+<main class="mx-auto flex max-w-5xl justify-center px-4 py-16">
+  <div class="card flex w-full max-w-md flex-col items-center gap-3 px-8 py-10 text-center">
+    <span class="tile">{{template "i-lock"}}</span>
+    <h1 class="mt-2 text-xl font-semibold">Open this exam in Safe Exam Browser</h1>
+    <p class="text-muted">{{.A.Subject}} · {{.A.Title}} must be taken in Safe Exam Browser, the locked-down exam browser your school uses.</p>
+    <a class="btn btn-primary btn-lg mt-2 w-full" href="{{.LaunchURL}}">Open in Safe Exam Browser</a>
+    <p class="text-sm text-muted">Don't have it? <a href="{{.DownloadURL}}" rel="noopener" target="_blank">Download Safe Exam Browser</a> (free, for Windows and Mac), install it, then press the button again. On a school computer, ask your invigilator.</p>
+    <a class="btn btn-ghost btn-sm mt-1" href="/">Back to my exams</a>
+  </div>
+</main>
+{{template "foot"}}

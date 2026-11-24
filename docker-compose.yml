@@ -1,0 +1,39 @@
+# Local development: `docker compose up -d db` starts the database only.
+# `docker compose --profile app up --build` also runs the app in a container,
+# using the settings in .env (compose reads it automatically).
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ams
+      POSTGRES_PASSWORD: ams
+      POSTGRES_DB: penlumen_ams
+    ports:
+      # 5433 so it doesn't clash with Penlumen School's database on 5432.
+      - "5433:5432"
+    volumes:
+      - ams-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ams"]
+      interval: 5s
+      retries: 10
+
+  app:
+    profiles: [app]
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://ams:ams@db:5432/penlumen_ams?sslmode=disable
+      AMS_BASE_URL: ${AMS_BASE_URL:-http://localhost:8080}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      # Must be the issuer Penlumen School announces (its API_PUBLIC_URL).
+      SMS_ISSUER: ${SMS_ISSUER:-}
+      SMS_CLIENT_ID: ${SMS_CLIENT_ID:-}
+      SMS_CLIENT_SECRET: ${SMS_CLIENT_SECRET:-}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  ams-db:

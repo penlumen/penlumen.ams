@@ -1,0 +1,20 @@
+{{template "head" .A.Title}}
+{{template "topbar" .}}
+<main class="mx-auto flex max-w-5xl justify-center px-4 py-16">
+  <div class="card flex w-full max-w-md flex-col items-center gap-3 px-8 py-10 text-center">
+    <span class="tile size-14 rounded-full bg-ok-bg text-ok [&_svg]:size-7">{{template "i-check"}}</span>
+    <h1 class="mt-2 text-xl font-semibold">{{if eq .Attempt.Status "expired"}}Time's up: exam submitted{{else}}Exam submitted{{end}}</h1>
+    <p class="text-muted">{{.A.Subject}} · {{.A.Title}}</p>
+    {{with .Score}}
+      <p class="text-3xl font-semibold">{{num .}} <span class="text-lg font-normal text-muted">/ {{num $.A.TotalMarks}}</span></p>
+    {{else}}
+      <p class="text-sm text-muted">Your score will appear in your result once your teacher has marked it and sent it.</p>
+    {{end}}
+    {{if .A.Settings.RequireSEB}}
+    <a class="btn btn-primary mt-3" href="/seb/quit">Exit Safe Exam Browser</a>
+    {{else}}
+    <a class="btn btn-primary mt-3" href="/">Back to my exams</a>
+    {{end}}
+  </div>
+</main>
+{{template "foot"}}

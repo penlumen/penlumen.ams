@@ -1,0 +1,54 @@
+{{template "head" "Assessments"}}
+{{template "staff-start" .}}
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    {{template "page-title" (dict "Title" "Assessments" "Sub" "Assessments (CA) and examinations for your classes.")}}
+    <a class="btn btn-primary" href="/assessments/new">{{template "i-plus"}}New assessment</a>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    {{template "stat" (dict "Label" "Live now" "Value" (index .Counts "open") "Href" "/monitor")}}
+    {{template "stat" (dict "Label" "Scheduled" "Value" (index .Counts "upcoming") "Href" "")}}
+    {{template "stat" (dict "Label" "Drafts" "Value" (index .Counts "draft") "Href" "")}}
+    {{template "stat" (dict "Label" "Ended, scores not sent" "Value" (index .Counts "closed") "Href" "/marking")}}
+  </div>
+
+  {{if .Assessments}}
+  <section class="card overflow-hidden" aria-label="Assessments">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[720px] text-sm">
+        <thead class="border-b border-line bg-soft text-left text-xs text-muted">
+          <tr class="[&>th]:px-4 [&>th]:py-2.5 [&>th]:font-medium"><th>Assessment</th><th>Class</th><th>Opens</th><th>Questions</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr>
+        </thead>
+        <tbody class="divide-y divide-line [&_td]:px-4 [&_td]:py-3">
+          {{range .Assessments}}
+          <tr class="hover:bg-soft">
+            <td>
+              <a class="font-medium text-fg no-underline hover:text-primary" href="/assessments/{{.ID}}">{{.Subject}} · {{.Title}}</a>
+              <div class="text-xs text-muted">{{kindName .Kind}} · {{num .ReportMarks}} {{.CountsTowards}} marks</div>
+            </td>
+            <td>{{.Class}}</td>
+            <td class="whitespace-nowrap text-fg-2">{{when .OpensAt}}</td>
+            <td>{{.QuestionCount}}</td>
+            <td>{{template "status-pill" .Window}}</td>
+            <td class="text-right whitespace-nowrap">
+              {{if eq .Window "open"}}<a class="btn btn-ghost btn-sm" href="/monitor/{{.ID}}">Monitor</a>{{end}}
+              {{if ne .Status "draft"}}<a class="btn btn-ghost btn-sm" href="/assessments/{{.ID}}/submissions">Submissions</a>{{end}}
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {{else}}
+  {{template "empty" "No assessments yet. Create one, add its questions, then schedule it for a class."}}
+  {{end}}
+{{template "staff-end"}}
+{{template "foot"}}
+
+{{define "stat"}}
+<div class="card flex flex-col gap-1 p-4">
+  <span class="text-xs text-muted">{{.Label}}</span>
+  <span class="text-2xl font-semibold">{{or .Value 0}}</span>
+</div>
+{{end}}

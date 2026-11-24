@@ -1,0 +1,120 @@
+{{template "head" (printf "Live · %s" .A.Title)}}
+{{template "staff-start" .}}
+  {{template "back" (dict "Href" "/monitor" "Label" "Monitoring")}}
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div class="flex flex-col gap-1">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <h1 class="text-xl font-semibold">{{.A.Subject}} · {{.A.Title}}</h1>
+        {{template "status-pill" .Window}}
+      </div>
+      <p class="text-muted">Opened {{when .A.OpensAt}} · closes {{when .A.ClosesAt}} · updates by itself</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <form class="flex items-center gap-2" method="post" action="/monitor/{{.A.ID}}/time">
+        <label class="sr-only" for="all-minutes">Minutes</label>
+        <select class="input w-24" id="all-minutes" name="minutes"><option>5</option><option selected>10</option><option>15</option><option>30</option></select>
+        <button class="btn btn-outline" type="submit">Add time for everyone</button>
+      </form>
+      {{if eq .Window "open"}}
+      <form method="post" action="/assessments/{{.A.ID}}/status"><button class="btn btn-danger" name="action" value="close" type="submit">End exam now</button></form>
+      {{end}}
+    </div>
+  </div>
+  {{template "notice" .Notice}}
+
+  <div data-live="/monitor/{{.A.ID}}/live" aria-live="polite">
+    {{template "live" .}}
+  </div>
+  <script>
+    // Refresh the numbers and the table every 5 seconds.
+    (function () {
+      var box = document.querySelector("[data-live]");
+      setInterval(function () {
+        if (document.hidden) return;
+        fetch(box.dataset.live, { credentials: "same-origin" })
+          .then(function (r) { return r.ok ? r.text() : null; })
+          .then(function (html) { if (html !== null) box.innerHTML = html; })
+          .catch(function () {});
+      }, 5000);
+    })();
+  </script>
+{{template "staff-end"}}
+{{template "foot"}}
+
+{{define "live"}}
+<div class="flex flex-col gap-4">
+  <div class="grid grid-cols-2 gap-3 md:grid-cols-5">
+    {{template "mstat" (dict "Label" "Time left" "Value" .TimeLeft)}}
+    {{template "mstat" (dict "Label" "Writing" "Value" (or (index .Counts "writing") 0))}}
+    {{template "mstat" (dict "Label" "Offline" "Value" (or (index .Counts "offline") 0) "Warn" (index .Counts "offline"))}}
+    {{template "mstat" (dict "Label" "Submitted" "Value" (add (or (index .Counts "submitted") 0) (or (index .Counts "expired") 0)))}}
+    {{template "mstat" (dict "Label" "Not started" "Value" (or (index .Counts "not_started") 0))}}
+  </div>
+  <section class="card overflow-hidden" aria-label="Students">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[760px] text-sm">
+        <thead class="border-b border-line bg-soft text-left text-xs text-muted">
+          <tr class="[&>th]:px-4 [&>th]:py-2.5 [&>th]:font-medium"><th>Student</th><th>Status</th><th>Progress</th><th>Last answer</th><th>Alerts</th><th><span class="sr-only">Actions</span></th></tr>
+        </thead>
+        <tbody class="divide-y divide-line [&_td]:px-4 [&_td]:py-3">
+          {{$total := .Total}}
+          {{$id := .A.ID}}
+          {{$proctor := .A.Settings.Proctoring}}
+          {{range .Rows}}
+          <tr class="{{if .Attention}}bg-warn-bg/40{{end}}">
+            <td><span class="font-medium">{{.Name}}</span><div class="text-xs text-muted">{{.RegNumber}}</div></td>
+            <td>
+              {{if eq .State "writing"}}<span class="pill bg-ok-bg text-ok before:size-1.5 before:rounded-full before:bg-current before:content-['']">Writing</span>
+              {{else if eq .State "offline"}}<span class="pill bg-danger-bg text-danger">Offline</span>
+              {{else if eq .State "submitted"}}<span class="pill bg-accent text-accent-fg">Submitted</span>
+              {{else if eq .State "expired"}}<span class="pill bg-warn-bg text-warn">Time ran out</span>
+              {{else}}<span class="pill bg-muted-bg text-muted">Not started</span>{{end}}
+            </td>
+            <td>
+              {{with .Progress}}
+              <div class="flex items-center gap-2.5">
+                <span class="h-1.5 w-24 overflow-hidden rounded-full bg-muted-bg"><span class="block h-full rounded-full bg-primary" style="width: {{pctOf .Answered $total}}%"></span></span>
+                <span class="text-xs text-muted tabular-nums">{{.Answered}}/{{$total}}</span>
+              </div>
+              {{else}}<span class="text-muted">—</span>{{end}}
+            </td>
+            <td class="text-xs text-muted">{{with .Progress}}{{with .LastSaved}}{{clock .}}{{else}}—{{end}}{{else}}—{{end}}</td>
+            <td class="text-xs">
+              {{with .Progress}}
+              <div class="flex flex-col gap-0.5">
+                {{if and $proctor (eq .Status "in_progress") (not .Monitored)}}<span class="text-danger">Not sharing camera or screen</span>{{end}}
+                {{if .LeftPage}}<span class="text-warn">Left the page {{.LeftPage}}×</span>{{end}}
+                {{if .Noise}}<span class="text-warn">Talking or noise {{.Noise}}×</span>{{end}}
+                {{if .DevicesOff}}<span class="text-danger">Camera, mic or screen off {{.DevicesOff}}×</span>{{end}}
+                {{if .ExtraMinutes}}<span class="text-muted">+{{.ExtraMinutes}} min</span>{{end}}
+                {{if and (not .LeftPage) (not .Noise) (not .DevicesOff) (not .ExtraMinutes) (or (not $proctor) .Monitored (ne .Status "in_progress"))}}<span class="text-muted">None</span>{{end}}
+                {{if or .Snapshots .LeftPage .Noise .DevicesOff}}<a class="w-fit" href="/monitor/{{$id}}/students/{{.ID}}">Evidence{{with .Snapshots}} · {{.}} {{if eq . 1}}photo{{else}}photos{{end}}{{end}}</a>{{end}}
+              </div>
+              {{else}}<span class="text-muted">—</span>{{end}}
+            </td>
+            <td class="text-right">
+              {{with .Progress}}{{if eq .Status "in_progress"}}
+              <form method="post" action="/monitor/{{$id}}/time">
+                <input type="hidden" name="attempt" value="{{.ID}}"><input type="hidden" name="minutes" value="10">
+                <button class="btn btn-ghost btn-sm" type="submit">+10 min</button>
+              </form>
+              {{end}}{{end}}
+            </td>
+          </tr>
+          {{else}}
+          <tr><td colspan="6" class="text-muted">No students found for this class.</td></tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <p class="text-xs text-muted">Updated {{clock .Updated}}. "Offline" means the exam screen hasn't checked in for over a minute.</p>
+</div>
+{{end}}
+
+{{define "mstat"}}
+<div class="card flex flex-col gap-0.5 p-4 {{if .Warn}}border-danger-line{{end}}">
+  <span class="text-xs text-muted">{{.Label}}</span>
+  <span class="text-xl font-semibold tabular-nums {{if .Warn}}text-danger{{end}}">{{.Value}}</span>
+</div>
+{{end}}

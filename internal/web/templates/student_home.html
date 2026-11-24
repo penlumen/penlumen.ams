@@ -1,0 +1,81 @@
+{{template "head" "My exams"}}
+{{template "topbar" .}}
+<main class="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-8">
+  {{with .User}}
+  <section class="flex items-center gap-4 rounded-[14px] bg-primary p-6 text-on-primary">
+    <span class="flex size-14 shrink-0 items-center justify-center rounded-full border-2 border-white/30 bg-card text-lg font-semibold text-primary" aria-hidden="true">{{firstLetter .Name}}</span>
+    <div class="min-w-0">
+      <p class="text-sm opacity-80">{{greeting}},</p>
+      <h1 class="truncate text-xl font-semibold">{{.Name}}</h1>
+      <p class="mt-1 text-sm opacity-80">{{with .Class}}{{.Name}} · {{end}}{{with .RegNumber}}{{.}} · {{end}}{{$.SchoolName}}</p>
+    </div>
+  </section>
+  {{end}}
+
+  {{if .NoClass}}
+  {{template "empty" "Your account isn't in a class yet. Ask your school to add you to one."}}
+  {{else}}
+
+  <section class="flex flex-col gap-4" aria-labelledby="now">
+    <div>
+      <h2 id="now" class="text-lg font-medium">Open now</h2>
+      <p class="text-sm text-muted">Tests and exams you can sit today.</p>
+    </div>
+    {{if .Open}}
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {{range .Open}}
+      <a class="card flex flex-col p-5 no-underline transition-colors hover:border-primary" href="/take/{{.ID}}">
+        <div class="flex items-start justify-between">
+          <span class="tile">{{template "i-clipboard"}}</span>
+          <span class="pill bg-ok-bg text-ok">{{if .Attempt}}In progress{{else}}Open until {{clock .ClosesAt}}{{end}}</span>
+        </div>
+        <h3 class="mt-4 font-medium text-fg">{{.Subject}} · {{.Title}}</h3>
+        <p class="mt-1 text-sm text-muted">{{kindName .Kind}} · {{.DurationMinutes}} minutes · {{.QuestionCount}} questions{{if .Settings.RequireSEB}} · in Safe Exam Browser{{end}}</p>
+        <span class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">{{if .Attempt}}Continue{{else}}Start{{end}} {{template "i-arrow"}}</span>
+      </a>
+      {{end}}
+    </div>
+    {{else}}
+    {{template "empty" "Nothing is open right now."}}
+    {{end}}
+  </section>
+
+  <section class="flex flex-col gap-4" aria-labelledby="up">
+    <h2 id="up" class="text-lg font-medium">Coming up</h2>
+    {{if .Upcoming}}
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {{range .Upcoming}}
+      <div class="card flex flex-col border-dashed p-5">
+        <div class="flex items-start justify-between">
+          <span class="tile">{{template "i-calendar"}}</span>
+          <span class="pill bg-muted-bg text-muted">{{kindName .Kind}}</span>
+        </div>
+        <h3 class="mt-4 font-medium">{{.Subject}} · {{.Title}}</h3>
+        <p class="mt-1 text-sm text-muted">Opens {{when .OpensAt}} · {{.DurationMinutes}} minutes</p>
+      </div>
+      {{end}}
+    </div>
+    {{else}}
+    <p class="text-sm text-muted">Nothing scheduled.</p>
+    {{end}}
+  </section>
+
+  {{if .Done}}
+  <section class="flex flex-col gap-4" aria-labelledby="done">
+    <h2 id="done" class="text-lg font-medium">Completed</h2>
+    <div class="card divide-y divide-line overflow-hidden">
+      {{range .Done}}
+      <a class="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-4 text-fg no-underline hover:bg-soft" href="/take/{{.ID}}">
+        <span class="flex-[1_1_220px] font-medium">{{.Subject}} · {{.Title}}</span>
+        <span class="flex-[1_1_180px] text-sm text-muted">{{if .Attempt}}{{with .Attempt.SubmittedAt}}Submitted {{when .}}{{end}}{{else}}Closed {{when .ClosesAt}}{{end}}</span>
+        {{if not .Attempt}}<span class="pill bg-muted-bg text-muted">Missed</span>
+        {{else if eq .Status "published"}}<span class="pill bg-ok-bg text-ok">Sent to your result</span>
+        {{else}}<span class="pill bg-warn-bg text-warn">Being marked</span>{{end}}
+      </a>
+      {{end}}
+    </div>
+  </section>
+  {{end}}
+  {{end}}
+</main>
+{{template "foot"}}

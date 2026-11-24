@@ -1,0 +1,36 @@
+{{template "head" (printf "%s · %s" .Attempt.StudentName .A.Title)}}
+{{template "staff-start" .}}
+  {{template "back" (dict "Href" (printf "/monitor/%s" .A.ID) "Label" (printf "Monitoring · %s · %s" .A.Subject .A.Title))}}
+  <div class="flex flex-col gap-1">
+    <h1 class="text-xl font-semibold">{{.Attempt.StudentName}}</h1>
+    <p class="text-muted">{{.Attempt.RegNumber}} · alerts and photos from this exam · deleted automatically on {{when .DeleteOn}}</p>
+  </div>
+
+  {{if .Items}}
+  <ol class="flex flex-col gap-4">
+    {{range .Items}}
+    <li class="card flex flex-col gap-3 p-5">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <span class="font-medium">{{.Label}}</span>
+        <span class="text-xs text-muted tabular-nums">{{clock .At}}</span>
+      </div>
+      {{if .Photos}}
+      <div class="grid gap-3 sm:grid-cols-2">
+        {{range .Photos}}
+        <figure class="flex flex-col gap-1.5">
+          <a href="/snapshots/{{.ID}}" target="_blank" rel="noopener"><img class="w-full rounded-[10px] border border-line bg-black object-contain" src="/snapshots/{{.ID}}" alt="{{if eq .Source "camera"}}Camera photo of the student{{else}}Photo of the student's screen{{end}} at {{clock .TakenAt}}" loading="lazy"></a>
+          <figcaption class="text-xs text-muted">{{if eq .Source "camera"}}Camera{{else}}Screen{{end}} · {{clock .TakenAt}}</figcaption>
+        </figure>
+        {{end}}
+      </div>
+      {{else}}
+      <p class="text-[13px] text-muted">No photo with this alert.</p>
+      {{end}}
+    </li>
+    {{end}}
+  </ol>
+  {{else}}
+  {{template "empty" "No alerts or photos for this student."}}
+  {{end}}
+{{template "staff-end"}}
+{{template "foot"}}

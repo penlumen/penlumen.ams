@@ -1,0 +1,13 @@
+.env
+/bin/
+*.exe
+*.test
+*.out
+coverage.*
+.idea/
+.vscode/
+.DS_Store
+# The default SQLite database (and its WAL files).
+*.db
+*.db-shm
+*.db-wal

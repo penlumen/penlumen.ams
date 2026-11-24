@@ -1,0 +1,100 @@
+{{template "head" (printf "Report · %s" .A.Title)}}
+{{template "staff-start" .}}
+  {{template "back" (dict "Href" "/reports" "Label" "Reports")}}
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div class="flex flex-col gap-1">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <h1 class="text-xl font-semibold">{{.A.Subject}} · {{.A.Title}}</h1>
+        {{template "status-pill" .Window}}
+      </div>
+      <p class="text-muted">{{.Class}} · {{kindName .A.Kind}} · out of {{num .A.TotalMarks}}</p>
+    </div>
+    <div class="flex gap-2">
+      <a class="btn btn-outline" href="/assessments/{{.A.ID}}/submissions.csv">{{template "i-download"}}Export submissions</a>
+      <a class="btn btn-outline" href="/assessments/{{.A.ID}}/submissions">Submissions</a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3 md:grid-cols-5">
+    {{template "rstat" (dict "Label" "Sat" "Value" (printf "%d" .Summary.Sat))}}
+    {{template "rstat" (dict "Label" "Average" "Value" (printf "%v%%" .Summary.Average))}}
+    {{template "rstat" (dict "Label" "Highest" "Value" (printf "%v%%" .Summary.High))}}
+    {{template "rstat" (dict "Label" "Lowest" "Value" (printf "%v%%" .Summary.Low))}}
+    {{template "rstat" (dict "Label" (printf "Passed (%d%%+)" .PassMark) "Value" (printf "%d · %d%%" .Summary.Passed .Summary.PassRate))}}
+  </div>
+
+  <div class="flex flex-wrap items-start gap-6">
+    <section class="card flex min-w-0 flex-[1_1_320px] flex-col gap-4 p-5" aria-labelledby="spread">
+      <h2 id="spread" class="font-medium">How scores spread</h2>
+      <div class="flex flex-col gap-3">
+        {{range .Summary.Bands}}
+        <div class="grid grid-cols-[72px_1fr_64px] items-center gap-3 text-sm">
+          <span class="text-muted tabular-nums">{{.Label}}%</span>
+          <span class="h-3 overflow-hidden rounded-full bg-muted-bg"><span class="block h-full rounded-full bg-primary" style="width: {{.Pct}}%"></span></span>
+          <span class="text-right tabular-nums">{{.Count}} <span class="text-muted">· {{.Pct}}%</span></span>
+        </div>
+        {{end}}
+      </div>
+      {{with .Hardest}}
+      <div class="flex flex-col gap-2 border-t border-line pt-4">
+        <h3 class="text-sm font-medium">Worth going over in class</h3>
+        <ul class="flex flex-col gap-1.5 text-sm text-fg-2">
+          {{range .}}<li><span class="font-medium text-fg">Q{{.Number}}</span> · {{if .IsTheory}}average {{.Average}}% of the marks{{else}}{{.Right}}% got it right{{end}}</li>{{end}}
+        </ul>
+      </div>
+      {{end}}
+    </section>
+
+    <section class="card min-w-0 flex-[999_1_420px] overflow-hidden" aria-labelledby="ranked">
+      <h2 id="ranked" class="px-5 pt-5 pb-3 font-medium">Students</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[420px] text-sm">
+          <thead class="border-y border-line bg-soft text-left text-xs text-muted">
+            <tr class="[&>th]:px-4 [&>th]:py-2.5 [&>th]:font-medium"><th>#</th><th>Student</th><th>Score</th><th>%</th></tr>
+          </thead>
+          <tbody class="divide-y divide-line [&_td]:px-4 [&_td]:py-2.5">
+            {{$total := .A.TotalMarks}}
+            {{range $i, $at := .Ranked}}
+            <tr><td class="text-muted">{{inc $i}}</td><td>{{$at.StudentName}}</td><td class="tabular-nums">{{num (deref2 $at.Score)}} / {{num $total}}</td><td class="tabular-nums">{{pct (deref2 $at.Score) $total}}%</td></tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="card overflow-hidden" aria-labelledby="by-q">
+    <h2 id="by-q" class="px-5 pt-5 pb-3 font-medium">Question by question</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[640px] text-sm">
+        <thead class="border-y border-line bg-soft text-left text-xs text-muted">
+          <tr class="[&>th]:px-4 [&>th]:py-2.5 [&>th]:font-medium"><th>#</th><th>Question</th><th>Type</th><th>Answered</th><th>Result</th></tr>
+        </thead>
+        <tbody class="divide-y divide-line [&_td]:px-4 [&_td]:py-3">
+          {{range .Questions}}
+          <tr>
+            <td class="text-muted">{{.Number}}</td>
+            <td class="max-w-md"><span class="line-clamp-2">{{plain .Body}}</span></td>
+            <td>{{if .IsTheory}}Theory{{else}}Objective{{end}}</td>
+            <td class="tabular-nums">{{.Stat.Answered}}</td>
+            <td>
+              <div class="flex items-center gap-2">
+                <span class="h-1.5 w-24 overflow-hidden rounded-full bg-muted-bg"><span class="block h-full rounded-full {{if lt (score .) 50}}bg-warn{{else}}bg-ok-solid{{end}}" style="width: {{score .}}%"></span></span>
+                <span class="text-xs text-muted">{{if .IsTheory}}average {{.Average}}%{{else}}{{.Right}}% right{{end}}</span>
+              </div>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{{template "staff-end"}}
+{{template "foot"}}
+
+{{define "rstat"}}
+<div class="card flex flex-col gap-0.5 p-4">
+  <span class="text-xs text-muted">{{.Label}}</span>
+  <span class="text-xl font-semibold tabular-nums">{{.Value}}</span>
+</div>
+{{end}}

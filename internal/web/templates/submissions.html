@@ -1,0 +1,89 @@
+{{template "head" (printf "Submissions · %s" .A.Title)}}
+{{template "staff-start" .}}
+  {{template "back" (dict "Href" (printf "/assessments/%s" .A.ID) "Label" (printf "%s · %s" .A.Subject .A.Title))}}
+
+  <section class="card flex flex-wrap items-center justify-between gap-4 p-5" aria-labelledby="title">
+    <div class="flex flex-[1_1_320px] flex-col gap-2">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <h1 id="title" class="text-xl font-semibold">Submissions</h1>
+        {{template "status-pill" .Window}}
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="h-2 max-w-64 flex-[1_1_160px] overflow-hidden rounded-full bg-muted-bg" aria-hidden="true"><span class="block h-full rounded-full bg-ok-solid" style="width: {{pctOf .Finished (len .Rows)}}%"></span></span>
+        <span class="text-sm text-muted">{{.Finished}} of {{len .Rows}} submitted · out of {{num .A.TotalMarks}}, worth {{num .A.ReportMarks}} {{.A.CountsTowards}} marks</span>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <a class="btn btn-outline" href="/assessments/{{.A.ID}}/submissions.csv">{{template "i-download"}}Export CSV</a>
+      <a class="btn btn-outline" href="/reports/{{.A.ID}}">{{template "i-chart"}}Report</a>
+      {{if .Connected}}<form method="post" action="/assessments/{{.A.ID}}/publish">
+        <button class="btn btn-primary" type="submit" {{if not .CanPublish}}disabled{{end}}>{{template "i-send"}}{{if eq .A.Status "published"}}Send scores again{{else}}Send scores to report cards{{end}}</button>
+      </form>{{end}}
+    </div>
+  </section>
+
+  {{template "notice" .Notice}}
+  {{if eq .A.Status "published"}}
+    <div class="rounded-[10px] px-4 py-3 text-sm {{if .Report.Skipped}}bg-warn-bg text-warn{{else}}bg-ok-bg text-ok{{end}}" role="status">
+      Sent {{with .A.PublishedAt}}{{when .}}{{end}}: {{.Report.Saved}} saved on reports{{if .Report.Skipped}}, {{.Report.Skipped}} skipped. Fix the reasons below, then send again{{end}}.
+    </div>
+  {{else if .Writing}}
+    {{template "notice" (printf "%d still writing. Scores can be sent once the exam ends." .Writing)}}
+  {{else if .Unmarked}}
+    <div class="flex flex-wrap items-center justify-between gap-3 rounded-[10px] bg-warn-bg px-4 py-3 text-sm text-warn" role="status">
+      <span>{{.Unmarked}} written {{if eq .Unmarked 1}}answer is{{else}}answers are{{end}} still to mark before scores can be sent.</span>
+      <a class="btn btn-outline btn-sm" href="/marking/{{.A.ID}}">Mark now</a>
+    </div>
+  {{else if not .Connected}}
+    <p class="text-muted">Report cards are kept in Penlumen School, which isn't connected. Use Export CSV for the scores.</p>
+  {{else if not .CanPublish}}
+    <p class="text-muted">Scores can be sent once the exam ends and someone has sat it.</p>
+  {{end}}
+
+  <section class="card overflow-hidden" aria-label="Students">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[720px] text-sm">
+        <thead class="border-b border-line bg-soft text-left text-xs text-muted">
+          <tr class="[&>th]:px-4 [&>th]:py-2.5 [&>th]:font-medium"><th>Student</th><th>Status</th><th>Score</th><th>On the report</th><th>Report card</th><th><span class="sr-only">Actions</span></th></tr>
+        </thead>
+        <tbody class="divide-y divide-line [&_td]:px-4 [&_td]:py-3">
+          {{range .Rows}}
+          <tr>
+            <td><span class="font-medium">{{.StudentName}}</span><div class="text-xs text-muted">{{.RegNumber}}</div></td>
+            <td>{{if eq .Status "in_progress"}}<span class="pill bg-accent text-accent-fg">Writing</span>{{else if eq .Status "expired"}}<span class="pill bg-warn-bg text-warn">Time ran out</span>{{else}}<span class="pill bg-ok-bg text-ok">Submitted</span>{{end}}</td>
+            <td class="whitespace-nowrap">{{with .Score}}{{num .}} / {{num $.A.TotalMarks}}{{else}}—{{end}}</td>
+            <td class="whitespace-nowrap">{{if .Score}}{{num .Report}} / {{num $.A.ReportMarks}}{{else}}—{{end}}</td>
+            <td>{{with .Outcome}}{{if eq .Status "saved"}}<span class="font-medium text-ok">Saved</span>{{else}}<span class="text-warn">Skipped: {{.Message}}</span>{{end}}{{else}}<span class="text-muted">Not sent</span>{{end}}</td>
+            <td class="text-right">{{template "attempt-actions" (dict "A" $.A "At" .)}}</td>
+          </tr>
+          {{else}}
+          <tr><td colspan="6" class="text-muted">Nobody has started it yet.</td></tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{{template "staff-end"}}
+{{template "foot"}}
+
+{{/* Reset or delete one student's exam, whatever its state. */}}
+{{define "attempt-actions"}}
+<details class="group relative inline-block text-left">
+  <summary class="btn btn-ghost btn-sm list-none [&::-webkit-details-marker]:hidden" aria-label="Reset or delete {{.At.StudentName}}'s exam">Manage</summary>
+  <div class="card mt-2 flex w-72 flex-col gap-3 p-4 text-left">
+    <form class="flex flex-col gap-2" method="post" action="/assessments/{{.A.ID}}/attempts/{{.At.ID}}/reset">
+      <p class="font-medium">Reset</p>
+      <p class="text-[13px] text-muted">Clears {{.At.StudentName}}'s answers and marks and gives a fresh {{.A.DurationMinutes}} minutes from now, even if the exam has ended.</p>
+      <label class="flex items-center gap-2 text-[13px]"><input class="size-4 accent-primary" type="checkbox" name="confirm" required> Clear their answers</label>
+      <button class="btn btn-outline btn-sm" type="submit">Reset exam</button>
+    </form>
+    <form class="flex flex-col gap-2 border-t border-line pt-3" method="post" action="/assessments/{{.A.ID}}/attempts/{{.At.ID}}/delete">
+      <p class="font-medium text-danger">Delete</p>
+      <p class="text-[13px] text-muted">Removes the attempt completely, as if they never started. This can't be undone.</p>
+      <label class="flex items-center gap-2 text-[13px]"><input class="size-4 accent-danger" type="checkbox" name="confirm" required> I understand</label>
+      <button class="btn btn-danger btn-sm" type="submit">Delete exam</button>
+    </form>
+    {{if .A.PublishedAt}}<p class="text-[12px] text-warn">Their score is on their report card; either action takes it off.</p>{{end}}
+  </div>
+</details>
+{{end}}

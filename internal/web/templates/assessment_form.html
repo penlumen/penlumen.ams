@@ -1,0 +1,100 @@
+{{template "head" "Assessment details"}}
+{{template "staff-start" .}}
+  {{if .Existing}}
+    {{template "back" (dict "Href" (printf "/assessments/%s" .Existing.ID) "Label" (printf "%s · %s" .Existing.Subject .Existing.Title))}}
+    {{template "page-title" (dict "Title" "Edit details" "Sub" "Change these until students can start.")}}
+  {{else}}
+    {{template "back" (dict "Href" "/" "Label" "Assessments")}}
+    {{template "page-title" (dict "Title" "New assessment" "Sub" "Pick the class first; its subjects and terms follow.")}}
+  {{end}}
+
+  <form class="flex flex-wrap items-start gap-6" method="post" action="{{if .Existing}}/assessments/{{.Existing.ID}}/details{{else}}/assessments{{end}}" novalidate data-assessment-form>
+    <div class="flex min-w-0 flex-[999_1_460px] flex-col gap-4">
+      {{if and .Choices.MineOnly (not .Choices.Classes)}}{{template "error-box" "No subjects are assigned to you yet. An administrator assigns each subject's teacher; then you can set assessments for it."}}{{end}}
+      {{with .Form.Errors}}{{template "error-box" "Check the highlighted fields."}}{{end}}
+      <section class="card flex flex-col gap-4 p-6" aria-labelledby="what">
+        <h2 id="what" class="font-medium">What it is</h2>
+        <label class="field">Name
+          <input class="input" name="title" value="{{.Form.Title}}" placeholder="e.g. First term examination" required maxlength="200">
+          {{template "err" index .Form.Errors "title"}}
+        </label>
+        <label class="field">Type
+          <select class="input" name="kind">
+            <option value="ca" {{if eq .Form.Kind "ca"}}selected{{end}}>Assessment (the CA column)</option>
+            <option value="exam" {{if eq .Form.Kind "exam"}}selected{{end}}>Examination (the exam column)</option>
+          </select>
+          {{template "err" index .Form.Errors "kind"}}
+        </label>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="field">Class
+            <select class="input" name="class" data-class>
+              <option value="">Choose a class…</option>
+              {{$class := .Form.Class}}
+              {{$multi := .Multi}}
+              {{range .Choices.Classes}}<option value="{{.UUID}}" {{if eq .UUID $class}}selected{{end}}>{{.Name}}{{if $multi}} · {{.Branch}}{{end}}</option>{{end}}
+            </select>
+            {{template "err" index .Form.Errors "class"}}
+            {{if .Choices.MineOnly}}<span class="hint">The classes and subjects you teach.</span>{{end}}
+          </label>
+          <label class="field">Subject
+            <select class="input" name="subject" data-subject {{if not .Form.Class}}disabled{{end}}>
+              <option value="">{{if .Form.Class}}Choose a subject…{{else}}Choose a class first{{end}}</option>
+              {{$subject := .Form.Subject}}
+              {{range .Info.Subjects}}<option {{if eq . $subject}}selected{{end}}>{{.}}</option>{{end}}
+            </select>
+            {{template "err" index .Form.Errors "subject"}}
+          </label>
+        </div>
+        <noscript><button class="btn btn-outline btn-sm w-fit" type="submit" formaction="{{if .Existing}}/assessments/{{.Existing.ID}}/details{{else}}/assessments{{end}}" name="pick" value="class">Show this class's subjects</button></noscript>
+      </section>
+    </div>
+
+    <aside class="flex max-w-full flex-[1_1_300px] flex-col gap-4">
+      <section class="card flex flex-col gap-4 p-6" aria-labelledby="settings">
+        <h2 id="settings" class="font-medium">Settings</h2>
+        <label class="field">Term
+          <select class="input" name="term" data-term>
+            {{$term := .Form.Term}}
+            {{range .Info.Terms}}<option value="{{.UUID}}" {{if or (eq .UUID $term) (and (not $term) .Current)}}selected{{end}}>{{.Label}}{{if .Current}} (current){{end}}</option>{{end}}
+          </select>
+          {{template "err" index .Form.Errors "term"}}
+        </label>
+        <div class="grid grid-cols-1 gap-3">
+          <label class="field">Opens
+            <input class="input px-2" type="datetime-local" name="opens_at" value="{{.Form.OpensAt}}">
+            {{template "err" index .Form.Errors "opens_at"}}
+          </label>
+          <label class="field">Closes
+            <input class="input px-2" type="datetime-local" name="closes_at" value="{{.Form.ClosesAt}}">
+            {{template "err" index .Form.Errors "closes_at"}}
+          </label>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="field">Minutes allowed
+            <input class="input" name="duration" inputmode="numeric" value="{{.Form.Duration}}">
+            {{template "err" index .Form.Errors "duration"}}
+          </label>
+          <label class="field">Report marks
+            <input class="input" name="report_marks" inputmode="decimal" value="{{.Form.ReportMarks}}">
+            {{template "err" index .Form.Errors "report_marks"}}
+          </label>
+        </div>
+        <p class="hint -mt-2">Full marks on this paper become the report marks in the CA or exam column.</p>
+        <div class="flex flex-col divide-y divide-line border-t border-line">
+          <label class="flex h-11 cursor-pointer items-center justify-between gap-3">Shuffle question order{{template "switch" (dict "Name" "shuffle_questions" "On" .Form.ShuffleQuestions)}}</label>
+          <label class="flex h-11 cursor-pointer items-center justify-between gap-3">Show score after submitting{{template "switch" (dict "Name" "show_score" "On" .Form.ShowScore)}}</label>
+          <label class="flex min-h-11 cursor-pointer items-center justify-between gap-3 py-2"><span>Camera, sound and screen monitoring <span class="hint block">Students share their camera, microphone and screen; photos are taken only when something looks wrong.</span></span>{{template "switch" (dict "Name" "proctoring" "On" .Form.Proctoring)}}</label>
+          <label class="flex min-h-11 cursor-pointer items-center justify-between gap-3 py-2"><span>Require Safe Exam Browser <span class="hint block">Students must use the locked-down SEB browser.</span></span>{{template "switch" (dict "Name" "require_seb" "On" .Form.RequireSEB)}}</label>
+        </div>
+        <label class="field" data-seb-keys {{if not .Form.RequireSEB}}hidden{{end}}>SEB Config Keys <span class="hint">Optional, but makes the check secure: copy the Config Key from the SEB Config Tool (one per line). Without one, AMS only checks that the browser says it's SEB.</span>
+          <textarea class="input font-mono text-xs" name="seb_keys" rows="3" spellcheck="false" placeholder="64 characters, e.g. 3a9f…">{{.Form.SEBKeys}}</textarea>
+          {{template "err" index .Form.Errors "seb_keys"}}
+        </label>
+        <button class="btn btn-primary btn-lg w-full" type="submit">{{if .Existing}}Save details{{else}}Create and add questions{{end}}</button>
+      </section>
+    </aside>
+  </form>
+  <script type="application/json" id="class-data">{{.Choices.ByClass}}</script>
+  <script src="/static/forms.js" defer></script>
+{{template "staff-end"}}
+{{template "foot"}}

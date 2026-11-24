@@ -1,0 +1,65 @@
+{{template "head" (printf "Marking · %s" .A.Title)}}
+{{template "staff-start" .}}
+  {{template "back" (dict "Href" "/marking" "Label" "Marking")}}
+  <section class="card flex flex-wrap items-center justify-between gap-4 p-5">
+    <div class="flex flex-[1_1_320px] flex-col gap-2">
+      <h1 class="text-xl font-semibold">{{.A.Subject}} · {{.A.Title}} · Section B</h1>
+      <p class="text-sm text-muted">{{len .Scripts}} {{if eq (len .Scripts) 1}}script{{else}}scripts{{end}} · {{if .Pending}}{{.Pending}} {{if eq .Pending 1}}answer{{else}}answers{{end}} to mark{{else}}all marked{{end}} · names are hidden while you mark</p>
+    </div>
+    <a class="btn btn-outline" href="/assessments/{{.A.ID}}/submissions">Submissions</a>
+  </section>
+  {{template "notice" .Notice}}
+
+  {{if .Current}}
+  <div class="flex flex-wrap items-start gap-6">
+    <nav class="card flex max-w-full flex-[1_1_220px] flex-col gap-0.5 p-2" aria-label="Scripts">
+      <span class="px-3 py-2 text-[11px] font-medium tracking-wide text-muted uppercase">Scripts</span>
+      {{$cur := .Current.AttemptID}}
+      {{$id := .A.ID}}
+      {{range .Scripts}}
+      <a class="flex h-10 items-center justify-between gap-2 rounded-md px-3 text-sm no-underline {{if eq .AttemptID $cur}}bg-side-accent font-medium text-accent-fg{{else}}text-fg hover:bg-muted-bg{{end}}" href="/marking/{{$id}}?script={{.AttemptID}}"{{if eq .AttemptID $cur}} aria-current="true"{{end}}>
+        <span>Script {{printf "%03d" .Number}}</span>
+        {{if .Pending}}<span class="pill bg-warn-bg text-warn">{{.Pending}}</span>{{else}}<span class="pill bg-ok-bg text-ok">Done</span>{{end}}
+      </a>
+      {{end}}
+    </nav>
+
+    <form class="flex min-w-0 flex-[999_1_480px] flex-col gap-4" method="post" action="/marking/{{.A.ID}}/{{.Current.AttemptID}}">
+      <div class="flex items-center justify-between text-sm text-muted">
+        <span class="font-medium text-fg">Script {{printf "%03d" .Current.Number}}</span>
+        <span>Objective score: {{num .ObjScore}} / {{num .ObjMax}} (marked automatically)</span>
+      </div>
+      {{range $i, $it := .Items}}
+      <section class="card flex flex-col gap-4 p-5" aria-labelledby="mq{{$i}}">
+        <div class="flex items-start justify-between gap-3">
+          <h2 id="mq{{$i}}" class="flex min-w-0 gap-1.5 font-medium"><span class="shrink-0">{{inc $i}}.</span><span class="rich min-w-0">{{rich $it.Body}}</span></h2>
+          <span class="shrink-0 text-xs text-muted">{{num $it.Marks}} marks</span>
+        </div>
+        {{if $it.Text}}
+        <div class="rich rounded-[10px] border border-line bg-soft px-4 py-3 text-[15px]">{{rich $it.Text}}</div>
+        {{else}}
+        <p class="rounded-[10px] border border-dashed border-line px-4 py-3 text-muted">Not answered (scored 0).</p>
+        {{end}}
+        {{with $it.Guide}}<p class="rounded-[10px] bg-accent px-4 py-3 text-[13px] leading-relaxed whitespace-pre-line text-accent-fg"><strong>Marking guide:</strong> {{.}}</p>{{end}}
+        {{if $it.Text}}
+        <div class="flex flex-wrap items-end gap-4">
+          <label class="field w-32">Mark (out of {{num $it.Marks}})
+            <input class="input" name="score_{{$it.ID}}" inputmode="decimal" value="{{with $it.Score}}{{num .}}{{end}}" placeholder="0 – {{num $it.Marks}}">
+          </label>
+          <label class="field min-w-60 flex-1">Comment for the student <span class="hint">optional</span>
+            <input class="input" name="comment_{{$it.ID}}" value="{{$it.Comment}}" maxlength="1000">
+          </label>
+        </div>
+        {{end}}
+      </section>
+      {{end}}
+      <div class="flex justify-end gap-2">
+        <button class="btn btn-primary" type="submit">Save and next script</button>
+      </div>
+    </form>
+  </div>
+  {{else}}
+  {{template "empty" "No scripts with theory answers yet."}}
+  {{end}}
+{{template "staff-end"}}
+{{template "foot"}}

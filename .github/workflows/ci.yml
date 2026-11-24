@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ams
+          POSTGRES_PASSWORD: ams
+          POSTGRES_DB: penlumen_ams
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ams"
+          --health-interval 5s
+          --health-retries 10
+    env:
+      # The end-to-end tests in internal/web run against this database.
+      AMS_TEST_DATABASE_URL: postgres://ams:ams@localhost:5432/penlumen_ams?sslmode=disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Formatting
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && echo "Run gofmt -w ." && exit 1)
+      - run: go vet ./...
+      - run: go test -race ./...
+      - run: go build ./cmd/ams

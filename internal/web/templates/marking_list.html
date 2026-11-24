@@ -1,0 +1,21 @@
+{{template "head" "Marking"}}
+{{template "staff-start" .}}
+  {{template "page-title" (dict "Title" "Marking" "Sub" "Theory answers to mark. Objective questions mark themselves.")}}
+  {{if .Rows}}
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {{range .Rows}}
+    <a class="card flex flex-col p-5 no-underline transition-colors hover:border-primary" href="/marking/{{.ID}}">
+      <div class="flex items-start justify-between">
+        <span class="tile">{{template "i-edit"}}</span>
+        {{if .Pending}}<span class="pill bg-warn-bg text-warn">{{.Pending}} to mark</span>{{else}}<span class="pill bg-ok-bg text-ok">All marked</span>{{end}}
+      </div>
+      <h3 class="mt-4 font-medium text-fg">{{.Subject}} · {{.Title}}</h3>
+      <p class="mt-1 text-sm text-muted">{{.Class}} · {{.Scripts}} {{if eq .Scripts 1}}script{{else}}scripts{{end}}</p>
+    </a>
+    {{end}}
+  </div>
+  {{else}}
+  {{template "empty" "Nothing to mark. Scripts with theory answers appear here once students submit."}}
+  {{end}}
+{{template "staff-end"}}
+{{template "foot"}}

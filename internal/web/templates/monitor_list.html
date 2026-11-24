@@ -1,0 +1,36 @@
+{{template "head" "Monitoring"}}
+{{template "staff-start" .}}
+  {{template "page-title" (dict "Title" "Monitoring" "Sub" "Watch an exam as students write it: who's in, who's offline, who left the page.")}}
+
+  <section class="flex flex-col gap-3" aria-labelledby="live">
+    <h2 id="live" class="font-medium">Live now</h2>
+    {{if .Live}}
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {{range .Live}}
+      <a class="card flex flex-col p-5 no-underline transition-colors hover:border-primary" href="/monitor/{{.ID}}">
+        <div class="flex items-start justify-between"><span class="tile">{{template "i-pulse"}}</span>{{template "status-pill" .Window}}</div>
+        <h3 class="mt-4 font-medium text-fg">{{.Subject}} · {{.Title}}</h3>
+        <p class="mt-1 text-sm text-muted">{{.Class}} · closes at {{clock .ClosesAt}}</p>
+      </a>
+      {{end}}
+    </div>
+    {{else}}
+    {{template "empty" "No exam is running right now."}}
+    {{end}}
+  </section>
+
+  {{if .Soon}}
+  <section class="flex flex-col gap-3" aria-labelledby="soon">
+    <h2 id="soon" class="font-medium">Coming up</h2>
+    <div class="card divide-y divide-line overflow-hidden">
+      {{range .Soon}}
+      <a class="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3.5 text-fg no-underline hover:bg-soft" href="/monitor/{{.ID}}">
+        <span class="flex-[1_1_220px] font-medium">{{.Subject}} · {{.Title}}</span>
+        <span class="text-sm text-muted">{{.Class}} · opens {{when .OpensAt}}</span>
+      </a>
+      {{end}}
+    </div>
+  </section>
+  {{end}}
+{{template "staff-end"}}
+{{template "foot"}}
