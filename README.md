@@ -54,16 +54,39 @@ back to it. Its `docs/integrations.md` is the contract.
 - **Looks like the school portal:** it uses the school's theme colour from
   Penlumen School.
 
+## For a school: double-click ams.exe
+
+Put `ams.exe` in its own folder (e.g. `C:\Exams`) and double-click it. A
+window opens saying Exams is running, and the browser opens at
+http://localhost:8080. Close the window to stop Exams.
+
+On first run it creates its settings file (`.env`, with a random
+`SESSION_SECRET`) and its database (`penlumen_ams.db`) next to itself. The
+setup page then asks how the school uses Exams: **on its own**, or **with
+Penlumen School** (its API address, plus the client ID and secret from
+School Settings › Integrations, with a **Test connection** button). Later,
+administrators change the port, address, time zone and connection under
+**Settings**; saving rewrites `.env` and restarts Exams in place.
+
+For safety, Penlumen School's secrets can only be entered on the setup page
+from the computer running Exams; after that, only administrators can change
+them. Settings given as environment variables win over `.env` and show as
+read-only.
+
+Windows may warn about an unrecognised app the first time (choose **More
+info › Run anyway**) and ask to allow network access (allow it on private
+networks, so students' computers can reach Exams).
+
 ## Running it locally
 
 You need [Go](https://go.dev/dl/) 1.26 or newer.
 
 ```bash
-cp .env.example .env      # set SESSION_SECRET; SMS_* only to connect Penlumen School
-go run ./cmd/ams
+go run ./cmd/ams          # makes .env with a SESSION_SECRET if there isn't one
 ```
 
-Open http://localhost:8080.
+Open http://localhost:8080. Settings are read from the environment, then
+`.env` in the working directory, then `.env` next to the program.
 
 ### With or without Penlumen School
 

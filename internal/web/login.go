@@ -203,7 +203,11 @@ func (s *Server) setupPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	s.render(w, r, http.StatusOK, "setup.html", map[string]any{"F": map[string]string{}, "Errors": map[string]string{}})
+	mode := "own"
+	if r.URL.Query().Get("mode") == "connect" {
+		mode = "connect"
+	}
+	s.render(w, r, http.StatusOK, "setup.html", s.setupData(r, mode, map[string]string{}, map[string]string{}))
 }
 
 func (s *Server) setup(w http.ResponseWriter, r *http.Request) {
@@ -233,7 +237,7 @@ func (s *Server) setup(w http.ResponseWriter, r *http.Request) {
 		errs["confirm"] = "The two passwords don't match."
 	}
 	if len(errs) > 0 {
-		s.render(w, r, http.StatusUnprocessableEntity, "setup.html", map[string]any{"F": f, "Errors": errs})
+		s.render(w, r, http.StatusUnprocessableEntity, "setup.html", s.setupData(r, "own", f, errs))
 		return
 	}
 

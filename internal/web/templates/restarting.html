@@ -1,0 +1,30 @@
+{{template "head" "Restarting"}}
+<main class="flex min-h-screen items-center justify-center p-4">
+  <div class="card flex w-full max-w-md flex-col gap-3 p-8 text-center" role="status">
+    <h1 class="text-xl font-semibold">Settings saved</h1>
+    <p class="text-muted" data-wait>Exams is restarting with them. This page carries on by itself in a moment.</p>
+    <p class="hidden text-sm text-danger" data-stuck>
+      Exams hasn't come back yet. Look at its window on the computer running it for a message.
+    </p>
+  </div>
+</main>
+<script>
+  (function () {
+    var port = {{.Port}};
+    var then = {{.Then}};
+    var origin = port
+      ? location.protocol + "//" + location.hostname + ":" + port
+      : location.origin;
+    var tries = 0;
+    function check() {
+      tries++;
+      if (tries === 30) document.querySelector("[data-stuck]").classList.remove("hidden");
+      // no-cors: a different port is another origin; any answer means it's up.
+      fetch(origin + "/healthz", { mode: "no-cors", cache: "no-store" })
+        .then(function () { location.href = origin + then; })
+        .catch(function () { setTimeout(check, 1000); });
+    }
+    setTimeout(check, 2000);
+  })();
+</script>
+{{template "foot"}}

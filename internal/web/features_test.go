@@ -106,7 +106,7 @@ func TestTheoryCSVMonitorMarkingReports(t *testing.T) {
 	h.now = t0.Add(90 * time.Minute)
 	h.do(&amina, "POST", "/take/"+id+"/start", url.Values{"agree": {"on"}})
 	_, body, _ = h.do(&amina, "GET", "/take/"+id, nil)
-	mustContain(t, "exam", body, "Section B · Theory", "saves as you type", `data-editor data-upload="/attempts/`)
+	mustContain(t, "exam", body, "Section B · Theory", "saves as you type", "data-editor", `data-upload="/attempts/`)
 	if strings.Contains(body, "Light; chlorophyll") {
 		t.Fatal("the exam shows the marking guide")
 	}

@@ -1,12 +1,26 @@
 {{template "head" "Set up"}}
 <main class="flex min-h-screen items-center justify-center p-4">
-  <div class="card flex w-full max-w-md flex-col gap-5 p-8">
+  <div class="card flex w-full max-w-lg flex-col gap-5 p-8">
     <div class="flex flex-col gap-1.5">
       <span class="tile">{{template "i-clipboard"}}</span>
       <h1 class="mt-2 text-xl font-semibold">Set up Exams</h1>
-      <p class="text-muted">Name your school and create the first administrator. You'll add classes, terms, staff and students next.</p>
+      <p class="text-muted">How will your school use Exams?</p>
     </div>
+
+    <nav class="grid grid-cols-2 gap-2" aria-label="How Exams runs">
+      <a class="rounded-[10px] border px-3 py-2.5 no-underline {{if eq .Mode "own"}}border-primary bg-accent text-accent-fg{{else}}border-line text-fg hover:border-hover-line{{end}}" href="/setup" {{if eq .Mode "own"}}aria-current="page"{{end}}>
+        <span class="block font-medium">On its own</span>
+        <span class="block text-xs text-muted">Add classes, staff and students in Exams.</span>
+      </a>
+      <a class="rounded-[10px] border px-3 py-2.5 no-underline {{if eq .Mode "connect"}}border-primary bg-accent text-accent-fg{{else}}border-line text-fg hover:border-hover-line{{end}}" href="/setup?mode=connect" {{if eq .Mode "connect"}}aria-current="page"{{end}}>
+        <span class="block font-medium">With Penlumen School</span>
+        <span class="block text-xs text-muted">Use its classes, staff, students and sign-in.</span>
+      </a>
+    </nav>
+
+    {{if eq .Mode "own"}}
     {{with .Errors}}{{template "error-box" "Check the highlighted fields."}}{{end}}
+    <p class="text-sm text-muted">Name your school and create the first administrator. You'll add classes, terms, staff and students next.</p>
     <form class="flex flex-col gap-4" method="post" action="/setup" novalidate>
       <label class="field">School name
         <input class="input" name="school" value="{{index .F "school"}}" required autofocus>
@@ -32,6 +46,55 @@
       </div>
       <button class="btn btn-primary btn-lg w-full" type="submit">Create and sign in</button>
     </form>
+
+    {{else if not .CanConnect}}
+    {{template "error-box" "Penlumen School is connected through this server's settings (SMS_CLIENT_ID and SMS_CLIENT_SECRET). Ask whoever runs it."}}
+
+    {{else if not .Local}}
+    <div class="rounded-[10px] bg-warn-bg px-4 py-3 text-sm text-warn" role="alert">
+      For safety, Penlumen School can only be connected from the computer running Exams. Open
+      <span class="font-medium">{{.LocalAddress}}/setup?mode=connect</span> there.
+    </div>
+
+    {{else}}
+    {{with index .Errors "connection"}}{{template "error-box" .}}{{else}}{{with .Errors}}{{template "error-box" "Check the highlighted fields."}}{{end}}{{end}}
+    <p class="text-sm text-muted">
+      In Penlumen School, open <span class="font-medium text-fg">School Settings › Integrations</span>, add an integration
+      for Exams, and copy its details here. Give it these addresses:
+    </p>
+    <dl class="grid gap-2 rounded-[10px] bg-soft px-4 py-3 text-sm">
+      <div><dt class="text-muted">Sign-in redirect address</dt><dd class="break-all font-mono text-[13px]">{{.BaseURL}}/auth/callback</dd></div>
+      <div><dt class="text-muted">Webhook address</dt><dd class="break-all font-mono text-[13px]">{{.BaseURL}}/webhooks/ams</dd></div>
+    </dl>
+    <form class="flex flex-col gap-4" method="post" action="/setup/connect" novalidate>
+      <label class="field">Penlumen School's API address <span class="hint">e.g. https://api.yourschool.com</span>
+        <input class="input" name="api" value="{{index .F "api"}}" inputmode="url" required autofocus>
+        {{template "err" index .Errors "api"}}
+      </label>
+      <label class="field">Client ID
+        <input class="input" name="client_id" value="{{index .F "client_id"}}" autocomplete="off" spellcheck="false" required>
+        {{template "err" index .Errors "client_id"}}
+      </label>
+      <label class="field">Client secret
+        <input class="input" name="client_secret" type="password" autocomplete="off" required>
+        {{template "err" index .Errors "client_secret"}}
+      </label>
+      <label class="field">Webhook secret <span class="hint">Optional: changes in Penlumen School then show up at once.</span>
+        <input class="input" name="webhook_secret" type="password" autocomplete="off">
+      </label>
+      <label class="field">Portal address <span class="hint">Optional: the school portal people open, linked from Exams.</span>
+        <input class="input" name="portal_url" value="{{index .F "portal_url"}}" inputmode="url" placeholder="https://portal.yourschool.com">
+        {{template "err" index .Errors "portal_url"}}
+      </label>
+      <div class="flex flex-wrap items-center gap-3">
+        <button class="btn btn-outline" type="button" data-test-url="/setup/test" aria-controls="test-result">Test connection</button>
+        <span id="test-result" class="text-sm" role="status"></span>
+      </div>
+      <button class="btn btn-primary btn-lg w-full" type="submit">Connect and continue</button>
+      <p class="text-xs text-muted">Exams restarts with the connection, then you sign in with your school portal account.</p>
+    </form>
+    <script src="/static/settings.js" defer></script>
+    {{end}}
   </div>
 </main>
 {{template "foot"}}

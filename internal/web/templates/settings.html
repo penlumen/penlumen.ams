@@ -1,0 +1,85 @@
+{{template "head" "Settings"}}
+{{template "staff-start" .}}
+  {{template "page-title" (dict "Title" "Settings" "Sub" "Where Exams is opened, its time zone, and its connection to Penlumen School. Saving restarts Exams: anyone taking an exam just carries on.")}}
+  {{template "notice" .Notice}}
+  {{with index .Errors "connection"}}{{template "error-box" .}}{{else}}{{with .Errors}}{{template "error-box" "Check the highlighted fields."}}{{end}}{{end}}
+
+  <form class="flex flex-col gap-6" method="post" action="/settings" novalidate>
+    <section class="card flex flex-col gap-4 p-6" aria-labelledby="address-title">
+      <h2 id="address-title" class="font-semibold">Address and time</h2>
+      <div class="grid items-end gap-4 sm:grid-cols-[8rem_1fr]">
+        <label class="field">Port
+          <input class="input" name="port" value="{{index .F "port"}}" inputmode="numeric" {{if .Locked.port}}readonly{{end}}>
+          {{template "err" index .Errors "port"}}
+        </label>
+        <label class="field">Address people open <span class="hint">On other computers use this computer's network address, e.g. http://192.168.1.10:8080</span>
+          <input class="input" name="base_url" value="{{index .F "base_url"}}" inputmode="url" {{if .Locked.base_url}}readonly{{end}}>
+          {{template "err" index .Errors "base_url"}}
+        </label>
+      </div>
+      <label class="field sm:max-w-xs">Time zone <span class="hint">Opening and closing times use it.</span>
+        <input class="input" name="timezone" value="{{index .F "timezone"}}" list="timezones" {{if .Locked.timezone}}readonly{{end}}>
+        <datalist id="timezones">{{range .Timezones}}<option value="{{.}}">{{end}}</datalist>
+        {{template "err" index .Errors "timezone"}}
+      </label>
+    </section>
+
+    <section class="card flex flex-col gap-4 p-6" aria-labelledby="school-title">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 id="school-title" class="font-semibold">Penlumen School</h2>
+        {{if .Connected}}<span class="rounded-full bg-ok-bg px-2.5 py-0.5 text-xs font-medium text-ok">Connected</span>
+        {{else}}<span class="rounded-full bg-muted-bg px-2.5 py-0.5 text-xs font-medium text-muted">Not connected: Exams runs on its own</span>{{end}}
+      </div>
+      {{if .Locked.connection}}
+      <p class="text-sm text-muted">Set by this server's environment (SMS_ISSUER, SMS_CLIENT_ID, SMS_CLIENT_SECRET), so it can't be changed here.</p>
+      {{else}}
+      <p class="text-sm text-muted">
+        From <span class="font-medium text-fg">School Settings › Integrations</span> in Penlumen School. Give the integration
+        <span class="font-mono text-[13px] text-fg">{{.BaseURL}}/auth/callback</span> as its sign-in redirect and
+        <span class="font-mono text-[13px] text-fg">{{.BaseURL}}/webhooks/ams</span> as its webhook.
+      </p>
+      <label class="field">API address <span class="hint">e.g. https://api.yourschool.com</span>
+        <input class="input" name="api" value="{{index .F "api"}}" inputmode="url">
+        {{template "err" index .Errors "api"}}
+      </label>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="field">Client ID
+          <input class="input" name="client_id" value="{{index .F "client_id"}}" autocomplete="off" spellcheck="false">
+          {{template "err" index .Errors "client_id"}}
+        </label>
+        <label class="field">Client secret {{if .Connected}}<span class="hint">Leave empty to keep it.</span>{{end}}
+          <input class="input" name="client_secret" type="password" autocomplete="off" {{if .Connected}}placeholder="••••••••"{{end}}>
+          {{template "err" index .Errors "client_secret"}}
+        </label>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <button class="btn btn-outline btn-sm" type="button" data-test-url="/settings/test" aria-controls="test-result">Test connection</button>
+        <span id="test-result" class="text-sm" role="status"></span>
+      </div>
+      {{end}}
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="field">Webhook secret {{if .HasWebhookSecret}}<span class="hint">Leave empty to keep it.</span>{{else}}<span class="hint">Optional.</span>{{end}}
+          <input class="input" name="webhook_secret" type="password" autocomplete="off" {{if .HasWebhookSecret}}placeholder="••••••••"{{end}} {{if .Locked.webhook_secret}}readonly{{end}}>
+        </label>
+        <label class="field">Portal address <span class="hint">Linked from Exams.</span>
+          <input class="input" name="portal_url" value="{{index .F "portal_url"}}" inputmode="url" {{if .Locked.portal_url}}readonly{{end}}>
+          {{template "err" index .Errors "portal_url"}}
+        </label>
+      </div>
+      {{if and .Connected (not .Locked.connection)}}
+      <div class="flex flex-wrap items-center gap-3 border-t border-line pt-4 text-sm text-muted">
+        <button class="btn btn-outline btn-sm text-danger" type="submit" name="action" value="disconnect"
+          onclick="return confirm('Disconnect Penlumen School? Exams keeps the people and classes it has, and runs on its own.')">Disconnect</button>
+        Exams keeps its copy of people and classes, and people sign in with their Exams password or PIN.
+      </div>
+      {{end}}
+    </section>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <button class="btn btn-primary" type="submit" name="action" value="save">Save and restart</button>
+      <span class="text-xs text-muted">Saved in {{.File}}</span>
+    </div>
+  </form>
+  <script src="/static/settings.js" defer></script>
+{{template "staff-end"}}
+{{template "foot"}}

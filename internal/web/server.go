@@ -49,6 +49,9 @@ type Options struct {
 	Location *time.Location
 	// Now is the clock; tests replace it. Defaults to time.Now.
 	Now func() time.Time
+	// Settings lets the setup and Settings pages change the settings file
+	// and restart with it. Nil: those pages can't change settings.
+	Settings *Settings
 }
 
 type Server struct {
@@ -65,6 +68,7 @@ type Server struct {
 	loc       *time.Location
 	now       func() time.Time
 	pages     map[string]*template.Template
+	settings  *Settings
 }
 
 func New(o Options) *Server {
@@ -78,6 +82,7 @@ func New(o Options) *Server {
 		portalURL: o.PortalURL,
 		loc:       o.Location,
 		now:       o.Now,
+		settings:  o.Settings,
 	}
 	s.dir = directory.New(s.store, func() {
 		if s.sync != nil {
@@ -135,6 +140,13 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("POST /logout", s.auth.Logout)
 	mux.HandleFunc("GET /setup", s.setupPage)
 	mux.HandleFunc("POST /setup", s.setup)
+	mux.HandleFunc("POST /setup/connect", s.setupConnect)
+	mux.HandleFunc("POST /setup/test", s.setupTest)
+
+	// Administrators: the settings file (address, time zone, Penlumen School).
+	mux.HandleFunc("GET /settings", s.admin(s.settingsPage))
+	mux.HandleFunc("POST /settings", s.admin(s.saveSettings))
+	mux.HandleFunc("POST /settings/test", s.admin(s.testSettings))
 
 	// Administrators: students, staff, classes and terms.
 	mux.HandleFunc("GET /people", s.admin(s.peoplePage))

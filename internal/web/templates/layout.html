@@ -1,248 +1,671 @@
 {{define "head"}}<!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{.}} · Exams</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3"></script>
-<style type="text/tailwindcss">
-  /* Colours from Penlumen School (apps/web/src/app/globals.css). The brand
-     colour and its shades come from the school's theme (theme.go) and
-     replace these defaults. Use them as bg-card, text-muted, bg-primary… */
-  :root {
-    --bg: #f7f7f8; --card: #ffffff; --side: #f9f9f9; --soft: #f9fafc; --muted-bg: #f0f1f3;
-    --fg: #212121; --fg-2: #505050; --muted: #6c6c6c;
-    --line: #e7e7e7; --line-strong: #c9ced6; --hover-line: #9db6dd;
-    --primary: #003884; --primary-hover: #002a63; --on-primary: #ffffff;
-    --accent: #e6ebf3; --accent-fg: #003378; --side-accent: #f2f5f9; --focus: #6f9be0;
-    --ok: #0e8938; --ok-solid: #0f973d; --ok-bg: #e7f5ec;
-    --warn: #ad6f07; --warn-bg: #fef6e7; --flag: #dd900d;
-    --danger: #d42620; --danger-bg: #fbe9e9; --danger-line: #f2c4c2;
-  }
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{.}} · Exams</title>
+    <link rel="stylesheet" href="/static/fonts/dm-sans.css" />
+    <!-- Fonts and Tailwind's browser build are served by Exams, so pages work offline. -->
+    <script src="/static/tailwind.js"></script>
+    <style type="text/tailwindcss">
+      /* Colours from Penlumen School (apps/web/src/app/globals.css). The brand
+      colour and its shades come from the school's theme (theme.go) and
+      replace these defaults. Use them as bg-card, text-muted, bg-primary… */
+      :root {
+        --bg: #f7f7f8;
+        --card: #ffffff;
+        --side: #f9f9f9;
+        --soft: #f9fafc;
+        --muted-bg: #f0f1f3;
+        --fg: #212121;
+        --fg-2: #505050;
+        --muted: #6c6c6c;
+        --line: #e7e7e7;
+        --line-strong: #c9ced6;
+        --hover-line: #9db6dd;
+        --primary: #003884;
+        --primary-hover: #002a63;
+        --on-primary: #ffffff;
+        --accent: #e6ebf3;
+        --accent-fg: #003378;
+        --side-accent: #f2f5f9;
+        --focus: #6f9be0;
+        --ok: #0e8938;
+        --ok-solid: #0f973d;
+        --ok-bg: #e7f5ec;
+        --warn: #ad6f07;
+        --warn-bg: #fef6e7;
+        --flag: #dd900d;
+        --danger: #d42620;
+        --danger-bg: #fbe9e9;
+        --danger-line: #f2c4c2;
+      }
 
-  @theme inline {
-    --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-    --color-bg: var(--bg);
-    --color-card: var(--card);
-    --color-side: var(--side);
-    --color-soft: var(--soft);
-    --color-muted-bg: var(--muted-bg);
-    --color-fg: var(--fg);
-    --color-fg-2: var(--fg-2);
-    --color-muted: var(--muted);
-    --color-line: var(--line);
-    --color-line-strong: var(--line-strong);
-    --color-hover-line: var(--hover-line);
-    --color-primary: var(--primary);
-    --color-primary-hover: var(--primary-hover);
-    --color-on-primary: var(--on-primary);
-    --color-accent: var(--accent);
-    --color-accent-fg: var(--accent-fg);
-    --color-side-accent: var(--side-accent);
-    --color-focus: var(--focus);
-    --color-ok: var(--ok);
-    --color-ok-solid: var(--ok-solid);
-    --color-ok-bg: var(--ok-bg);
-    --color-warn: var(--warn);
-    --color-warn-bg: var(--warn-bg);
-    --color-flag: var(--flag);
-    --color-danger: var(--danger);
-    --color-danger-bg: var(--danger-bg);
-    --color-danger-line: var(--danger-line);
-  }
+      @theme inline {
+        --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+        --color-bg: var(--bg);
+        --color-card: var(--card);
+        --color-side: var(--side);
+        --color-soft: var(--soft);
+        --color-muted-bg: var(--muted-bg);
+        --color-fg: var(--fg);
+        --color-fg-2: var(--fg-2);
+        --color-muted: var(--muted);
+        --color-line: var(--line);
+        --color-line-strong: var(--line-strong);
+        --color-hover-line: var(--hover-line);
+        --color-primary: var(--primary);
+        --color-primary-hover: var(--primary-hover);
+        --color-on-primary: var(--on-primary);
+        --color-accent: var(--accent);
+        --color-accent-fg: var(--accent-fg);
+        --color-side-accent: var(--side-accent);
+        --color-focus: var(--focus);
+        --color-ok: var(--ok);
+        --color-ok-solid: var(--ok-solid);
+        --color-ok-bg: var(--ok-bg);
+        --color-warn: var(--warn);
+        --color-warn-bg: var(--warn-bg);
+        --color-flag: var(--flag);
+        --color-danger: var(--danger);
+        --color-danger-bg: var(--danger-bg);
+        --color-danger-line: var(--danger-line);
+      }
 
-  /* The few pieces every page repeats; everything else is utilities. */
-  @utility btn {
-    @apply inline-flex h-9 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border border-transparent px-4 text-sm font-medium no-underline transition-colors disabled:pointer-events-none disabled:opacity-50;
-  }
-  @utility btn-primary { @apply bg-primary text-on-primary hover:bg-primary-hover; }
-  @utility btn-outline { @apply border-line bg-card text-fg hover:bg-muted-bg; }
-  @utility btn-ghost { @apply text-fg hover:bg-muted-bg; }
-  @utility btn-danger { @apply border-danger-line bg-card text-danger hover:bg-danger-bg; }
-  @utility btn-sm { @apply h-8 px-3 text-[13px]; }
-  @utility btn-lg { @apply h-11 px-5 text-[15px]; }
-  @utility card { @apply rounded-[14px] border border-line bg-card; }
-  @utility pill { @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium; }
-  @utility input { @apply h-9 w-full rounded-md border border-line bg-card px-3 text-sm text-fg placeholder:text-muted; }
-  @utility field { @apply flex min-w-0 flex-col gap-1.5 text-sm font-medium text-fg; }
-  @utility hint { @apply text-[13px] font-normal text-muted; }
-  @utility icon { @apply size-4 shrink-0 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]; }
-  @utility tile { @apply flex size-11 shrink-0 items-center justify-center rounded-[10px] bg-accent text-accent-fg [&_svg]:size-5; }
+      /* The few pieces every page repeats; everything else is utilities. */
+      @utility btn {
+        @apply inline-flex h-9 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border border-transparent px-4 text-sm font-medium no-underline transition-colors disabled:pointer-events-none disabled:opacity-50;
+      }
+      @utility btn-primary {
+        @apply bg-primary text-on-primary hover:bg-primary-hover;
+      }
+      @utility btn-outline {
+        @apply border-line bg-card text-fg hover:bg-muted-bg;
+      }
+      @utility btn-ghost {
+        @apply text-fg hover:bg-muted-bg;
+      }
+      @utility btn-danger {
+        @apply border-danger-line bg-card text-danger hover:bg-danger-bg;
+      }
+      @utility btn-sm {
+        @apply h-8 px-3 text-[13px];
+      }
+      @utility btn-lg {
+        @apply h-11 px-5 text-[15px];
+      }
+      @utility card {
+        @apply rounded-[14px] border border-line bg-card;
+      }
+      @utility pill {
+        @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium;
+      }
+      @utility input {
+        @apply h-9 w-full rounded-md border border-line bg-card px-3 text-sm text-fg placeholder:text-muted;
+      }
+      @utility field {
+        @apply flex min-w-0 flex-col gap-1.5 text-sm font-medium text-fg;
+      }
+      @utility hint {
+        @apply text-[13px] font-normal text-muted;
+      }
+      @utility icon {
+        @apply size-4 shrink-0 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round];
+      }
+      @utility tile {
+        @apply flex size-11 shrink-0 items-center justify-center rounded-[10px] bg-accent text-accent-fg [&_svg]:size-5;
+      }
 
-  @layer base {
-    html { @apply bg-bg font-sans text-sm leading-normal text-fg antialiased; }
-    :focus-visible { @apply outline-2 outline-offset-2 outline-focus; }
-    a { @apply text-primary; }
-    textarea.input { @apply h-auto py-2 leading-relaxed; }
-  }
+      @layer base {
+        html {
+          @apply bg-bg font-sans text-sm leading-normal text-fg antialiased;
+        }
+        :focus-visible {
+          @apply outline-2 outline-offset-2 outline-focus;
+        }
+        a {
+          @apply text-primary;
+        }
+        textarea.input {
+          @apply h-auto py-2 leading-relaxed;
+        }
+      }
 
-  /* Formatted text: questions, written answers and the editor (editor.js). */
-  @utility rich {
-    @apply leading-relaxed break-words;
-    & ul { @apply list-disc pl-6; }
-    & ol { @apply list-decimal pl-6; }
-    & p, & div { @apply min-h-[1lh]; }
-    & img { @apply my-1.5 inline-block max-h-96 max-w-full rounded-lg border border-line; }
-  }
-</style>
-<style>{{themeCSS}}</style>
-</head>
-<body>
-{{end}}
-
-{{define "foot"}}
-</body>
+      /* Formatted text: questions, written answers and the editor (editor.js). */
+      @utility rich {
+        @apply leading-relaxed break-words;
+        & ul {
+          @apply list-disc pl-6;
+        }
+        & ol {
+          @apply list-decimal pl-6;
+        }
+        & p,
+        & div {
+          @apply min-h-[1lh];
+        }
+        & img {
+          @apply my-1.5 inline-block max-h-96 max-w-full rounded-lg border border-line;
+        }
+      }
+    </style>
+    <style>
+      {{themeCSS}}
+    </style>
+  </head>
+  <body>
+    {{end}} {{define "foot"}}
+  </body>
 </html>
-{{end}}
-
-{{/* ---------- Students: the portal's slim header ---------- */}}
-
+{{end}} {{/* ---------- Students: the portal's slim header ---------- */}}
 {{define "topbar"}}
 <header class="border-b border-line bg-card">
-  <div class="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
-    <a class="flex items-center gap-2 font-medium text-fg no-underline" href="/">{{template "i-clipboard"}}Exams{{with .SchoolName}}<span class="hidden text-muted sm:inline">· {{.}}</span>{{end}}</a>
+  <div
+    class="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4"
+  >
+    <a class="flex items-center gap-2 font-medium text-fg no-underline" href="/"
+      >{{template "i-clipboard"}}Exams{{with .SchoolName}}<span
+        class="hidden text-muted sm:inline"
+        >· {{.}}</span
+      >{{end}}</a
+    >
     {{with .User}}
     <div class="flex items-center gap-1">
-      {{with $.PortalURL}}<a class="btn btn-ghost btn-sm" href="{{.}}/student/dashboard">{{template "i-home"}}<span class="hidden sm:inline">Student portal</span></a>{{end}}
-      <form method="post" action="/logout"><button class="btn btn-ghost btn-sm" type="submit">{{template "i-logout"}}Sign out</button></form>
+      {{with $.PortalURL}}<a
+        class="btn btn-ghost btn-sm"
+        href="{{.}}/student/dashboard"
+        >{{template "i-home"}}<span class="hidden sm:inline"
+          >Student portal</span
+        ></a
+      >{{end}}
+      <form method="post" action="/logout">
+        <button class="btn btn-ghost btn-sm" type="submit">
+          {{template "i-logout"}}Sign out
+        </button>
+      </form>
     </div>
     {{end}}
   </div>
 </header>
-{{end}}
-
-{{/* ---------- Teachers: side menu + content ---------- */}}
-
-{{define "staff-start"}}
+{{end}} {{/* ---------- Teachers: side menu + content ---------- */}} {{define
+"staff-start"}}
 <div class="flex min-h-screen flex-col md:flex-row">
-  <nav class="flex shrink-0 flex-col gap-1 border-b border-line bg-side p-3 md:sticky md:top-0 md:h-screen md:w-60 md:border-r md:border-b-0" aria-label="Main">
+  <nav
+    class="flex shrink-0 flex-col gap-1 border-b border-line bg-side p-3 md:sticky md:top-0 md:h-screen md:w-60 md:border-r md:border-b-0"
+    aria-label="Main"
+  >
     <a class="mb-3 flex items-center gap-2.5 px-2 py-1.5 no-underline" href="/">
-      <span class="tile size-8 rounded-lg bg-primary text-on-primary [&_svg]:size-4">{{template "i-clipboard"}}</span>
-      <span class="flex min-w-0 flex-col leading-tight"><span class="font-semibold text-fg">Exams</span>{{with .SchoolName}}<span class="truncate text-xs text-muted">{{.}}</span>{{end}}</span>
+      <span
+        class="tile size-8 rounded-lg bg-primary text-on-primary [&_svg]:size-4"
+        >{{template "i-clipboard"}}</span
+      >
+      <span class="flex min-w-0 flex-col leading-tight"
+        ><span class="font-semibold text-fg">Exams</span>{{with
+        .SchoolName}}<span class="truncate text-xs text-muted">{{.}}</span
+        >{{end}}</span
+      >
     </a>
     <div class="flex flex-row flex-wrap gap-1 md:flex-col">
-      {{template "menu-link" (dict "Href" "/" "On" (eq .Section "exams") "Label" "Assessments" "Icon" "file")}}
-      {{template "menu-link" (dict "Href" "/monitor" "On" (eq .Section "monitor") "Label" "Monitoring" "Icon" "pulse")}}
-      {{template "menu-link" (dict "Href" "/marking" "On" (eq .Section "marking") "Label" "Marking" "Icon" "pen")}}
-      {{template "menu-link" (dict "Href" "/reports" "On" (eq .Section "reports") "Label" "Reports" "Icon" "chart")}}
-      {{if and .User .User.IsAdmin}}{{template "menu-link" (dict "Href" "/people" "On" (eq .Section "people") "Label" "People" "Icon" "users")}}{{end}}
+      {{template "menu-link" (dict "Href" "/" "On" (eq .Section "exams") "Label"
+      "Assessments" "Icon" "file")}} {{template "menu-link" (dict "Href"
+      "/monitor" "On" (eq .Section "monitor") "Label" "Monitoring" "Icon"
+      "pulse")}} {{template "menu-link" (dict "Href" "/marking" "On" (eq
+      .Section "marking") "Label" "Marking" "Icon" "pen")}} {{template
+      "menu-link" (dict "Href" "/reports" "On" (eq .Section "reports") "Label"
+      "Reports" "Icon" "chart")}} {{if and .User .User.IsAdmin}}{{template
+      "menu-link" (dict "Href" "/people" "On" (eq .Section "people") "Label"
+      "People" "Icon" "users")}}{{template "menu-link" (dict "Href" "/settings"
+      "On" (eq .Section "settings") "Label" "Settings" "Icon" "gear")}}{{end}}
     </div>
     {{with .User}}
-    <div class="mt-3 flex items-center gap-2.5 border-t border-line px-2 pt-3 md:mt-auto">
+    <div
+      class="mt-3 flex items-center gap-2.5 border-t border-line px-2 pt-3 md:mt-auto"
+    >
       {{template "avatar" .Name}}
-      <span class="flex min-w-0 flex-1 flex-col leading-tight"><span class="truncate font-medium">{{.Name}}</span><span class="text-xs text-muted">{{if eq .Role "admin"}}Administrator{{else}}Teacher{{end}}</span></span>
-      <form method="post" action="/logout"><button class="btn btn-ghost btn-sm px-2" type="submit" aria-label="Sign out">{{template "i-logout"}}</button></form>
+      <span class="flex min-w-0 flex-1 flex-col leading-tight"
+        ><span class="truncate font-medium">{{.Name}}</span
+        ><span class="text-xs text-muted"
+          >{{if eq .Role "admin"}}Administrator{{else}}Teacher{{end}}</span
+        ></span
+      >
+      <form method="post" action="/logout">
+        <button
+          class="btn btn-ghost btn-sm px-2"
+          type="submit"
+          aria-label="Sign out"
+        >
+          {{template "i-logout"}}
+        </button>
+      </form>
     </div>
     {{end}}
   </nav>
-  <main class="mx-auto flex w-full min-w-0 max-w-6xl flex-1 flex-col gap-6 px-4 py-6 md:px-8 md:py-8">
-{{end}}
-
-{{define "staff-end"}}
+  <main
+    class="mx-auto flex w-full min-w-0 max-w-6xl flex-1 flex-col gap-6 px-4 py-6 md:px-8 md:py-8"
+  >
+    {{end}} {{define "staff-end"}}
   </main>
 </div>
-{{end}}
-
-{{/* One teacher menu entry: (dict "Href" "/marking" "On" true "Label" "…" "Icon" "book"). */}}
-{{define "menu-link"}}<a class="flex h-9 items-center gap-2.5 rounded-md px-2.5 text-sm no-underline {{if .On}}bg-side-accent font-medium text-accent-fg{{else}}text-fg-2 hover:bg-muted-bg hover:text-fg{{end}}" href="{{.Href}}"{{if .On}} aria-current="page"{{end}}>{{if eq .Icon "file"}}{{template "i-file"}}{{else if eq .Icon "pulse"}}{{template "i-pulse"}}{{else if eq .Icon "pen"}}{{template "i-edit"}}{{else if eq .Icon "users"}}{{template "i-users"}}{{else}}{{template "i-chart"}}{{end}}{{.Label}}</a>{{end}}
-
-{{/* ---------- Shared bits ---------- */}}
-
-{{define "avatar"}}<span class="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-fg" aria-hidden="true">{{initials .}}</span>{{end}}
-
-{{define "page-title"}}<div class="flex flex-col gap-1"><h1 class="text-xl font-semibold">{{.Title}}</h1>{{with .Sub}}<p class="text-muted">{{.}}</p>{{end}}</div>{{end}}
-
-{{define "back"}}<a class="inline-flex w-fit items-center gap-1 text-[13px] text-muted no-underline hover:text-fg" href="{{.Href}}">{{template "i-left"}}{{.Label}}</a>{{end}}
-
-{{define "notice"}}{{with .}}<div class="rounded-[10px] border border-line bg-card px-4 py-3 text-sm" role="status">{{.}}</div>{{end}}{{end}}
-
-{{define "error-box"}}{{with .}}<div class="rounded-[10px] bg-danger-bg px-4 py-3 text-sm text-danger" role="alert">{{.}}</div>{{end}}{{end}}
-
-{{define "err"}}{{with .}}<span class="text-[13px] font-normal text-danger">{{.}}</span>{{end}}{{end}}
-
-{{define "empty"}}<div class="card flex flex-col items-center gap-2 border-dashed px-6 py-10 text-center"><p class="text-muted">{{.}}</p></div>{{end}}
-
-{{/* An assessment's window (Assessment.Window) as a pill. */}}
-{{define "status-pill"}}{{if eq . "draft"}}<span class="pill bg-muted-bg text-muted">Draft</span>{{else if eq . "upcoming"}}<span class="pill bg-accent text-accent-fg">Scheduled</span>{{else if eq . "open"}}<span class="pill bg-ok-bg text-ok before:size-1.5 before:rounded-full before:bg-current before:content-['']">Live</span>{{else if eq . "closed"}}<span class="pill bg-warn-bg text-warn">Ended</span>{{else if eq . "published"}}<span class="pill bg-ok-bg text-ok">Scores sent</span>{{end}}{{end}}
-
-{{/* An on/off switch: (dict "Name" "field_name" "On" true). */}}
-{{define "switch"}}<input class="relative h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-line-strong transition-colors after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] checked:bg-primary checked:after:left-[18px]" type="checkbox" name="{{.Name}}" {{if .On}}checked{{end}}>{{end}}
-
-{{/* Read-only switch: pass true or false. */}}
-{{define "switch-view"}}<span class="relative h-5 w-9 shrink-0 rounded-full bg-line-strong after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-white after:shadow-sm after:content-[''] data-[enabled=true]:bg-primary data-[enabled=true]:after:left-[18px]" data-enabled="{{.}}" role="img" aria-label="{{if .}}On{{else}}Off{{end}}"></span>{{end}}
-
-{{/* The Time / Questions / Marks tiles and the exam rules (students). */}}
-{{define "tiles"}}
-<div class="grid max-w-md grid-cols-3 gap-3">
-  <div class="flex flex-col gap-0.5 rounded-[10px] bg-muted-bg px-3.5 py-3"><span class="text-xs text-muted">Time</span><span class="text-base font-semibold">{{.DurationMinutes}} min</span></div>
-  <div class="flex flex-col gap-0.5 rounded-[10px] bg-muted-bg px-3.5 py-3"><span class="text-xs text-muted">Questions</span><span class="text-base font-semibold">{{.QuestionCount}}</span></div>
-  <div class="flex flex-col gap-0.5 rounded-[10px] bg-muted-bg px-3.5 py-3"><span class="text-xs text-muted">Marks</span><span class="text-base font-semibold">{{num .TotalMarks}}</span></div>
+{{end}} {{/* One teacher menu entry: (dict "Href" "/marking" "On" true "Label"
+"…" "Icon" "book"). */}} {{define "menu-link"}}<a
+  class="flex h-9 items-center gap-2.5 rounded-md px-2.5 text-sm no-underline {{if .On}}bg-side-accent font-medium text-accent-fg{{else}}text-fg-2 hover:bg-muted-bg hover:text-fg{{end}}"
+  href="{{.Href}}"
+  {{if
+  .On}}
+  aria-current="page"
+  {{end}}
+  >{{if eq .Icon "file"}}{{template "i-file"}}{{else if eq .Icon
+  "pulse"}}{{template "i-pulse"}}{{else if eq .Icon "pen"}}{{template
+  "i-edit"}}{{else if eq .Icon "users"}}{{template "i-users"}}{{else if eq .Icon
+  "gear"}}{{template "i-gear"}}{{else}}{{template
+  "i-chart"}}{{end}}{{.Label}}</a
+>{{end}} {{/* ---------- Shared bits ---------- */}} {{define "avatar"}}<span
+  class="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-fg"
+  aria-hidden="true"
+  >{{initials .}}</span
+>{{end}} {{define "page-title"}}
+<div class="flex flex-col gap-1">
+  <h1 class="text-xl font-semibold">{{.Title}}</h1>
+  {{with .Sub}}
+  <p class="text-muted">{{.}}</p>
+  {{end}}
 </div>
-{{end}}
-
-{{define "rules"}}
-<ul class="flex flex-col gap-3 text-sm text-fg-2 [&_svg]:mt-0.5 [&_svg]:text-primary">
-  <li class="flex gap-2.5">{{template "i-clock"}}<span>The timer starts when you press Start and keeps running if you close the page. It closes at {{clock .}} even if you have time left.</span></li>
-  <li class="flex gap-2.5">{{template "i-check"}}<span>Your answers save automatically as you go.</span></li>
-  <li class="flex gap-2.5">{{template "i-screen"}}<span>Stay on this page until you submit. Leaving it is shown to your invigilator.</span></li>
-  <li class="flex gap-2.5">{{template "i-flag"}}<span>Flag questions you want to come back to before submitting.</span></li>
+{{end}} {{define "back"}}<a
+  class="inline-flex w-fit items-center gap-1 text-[13px] text-muted no-underline hover:text-fg"
+  href="{{.Href}}"
+  >{{template "i-left"}}{{.Label}}</a
+>{{end}} {{define "notice"}}{{with .}}
+<div
+  class="rounded-[10px] border border-line bg-card px-4 py-3 text-sm"
+  role="status"
+>
+  {{.}}
+</div>
+{{end}}{{end}} {{define "error-box"}}{{with .}}
+<div
+  class="rounded-[10px] bg-danger-bg px-4 py-3 text-sm text-danger"
+  role="alert"
+>
+  {{.}}
+</div>
+{{end}}{{end}} {{define "err"}}{{with .}}<span
+  class="text-[13px] font-normal text-danger"
+  >{{.}}</span
+>{{end}}{{end}} {{define "empty"}}
+<div
+  class="card flex flex-col items-center gap-2 border-dashed px-6 py-10 text-center"
+>
+  <p class="text-muted">{{.}}</p>
+</div>
+{{end}} {{/* An assessment's window (Assessment.Window) as a pill. */}} {{define
+"status-pill"}}{{if eq . "draft"}}<span class="pill bg-muted-bg text-muted"
+  >Draft</span
+>{{else if eq . "upcoming"}}<span class="pill bg-accent text-accent-fg"
+  >Scheduled</span
+>{{else if eq . "open"}}<span
+  class="pill bg-ok-bg text-ok before:size-1.5 before:rounded-full before:bg-current before:content-['']"
+  >Live</span
+>{{else if eq . "closed"}}<span class="pill bg-warn-bg text-warn">Ended</span
+>{{else if eq . "published"}}<span class="pill bg-ok-bg text-ok"
+  >Scores sent</span
+>{{end}}{{end}} {{/* An on/off switch: (dict "Name" "field_name" "On" true).
+*/}} {{define "switch"}}<input
+  class="relative h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-line-strong transition-colors after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] checked:bg-primary checked:after:left-[18px]"
+  type="checkbox"
+  name="{{.Name}}"
+  {{if
+  .On}}checked{{end}}
+/>{{end}} {{/* Read-only switch: pass true or false. */}} {{define
+"switch-view"}}<span
+  class="relative h-5 w-9 shrink-0 rounded-full bg-line-strong after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-white after:shadow-sm after:content-[''] data-[enabled=true]:bg-primary data-[enabled=true]:after:left-[18px]"
+  data-enabled="{{.}}"
+  role="img"
+  aria-label="{{if .}}On{{else}}Off{{end}}"
+></span
+>{{end}} {{/* The Time / Questions / Marks tiles and the exam rules (students).
+*/}} {{define "tiles"}}
+<div class="grid max-w-md grid-cols-3 gap-3">
+  <div class="flex flex-col gap-0.5 rounded-[10px] bg-muted-bg px-3.5 py-3">
+    <span class="text-xs text-muted">Time</span
+    ><span class="text-base font-semibold">{{.DurationMinutes}} min</span>
+  </div>
+  <div class="flex flex-col gap-0.5 rounded-[10px] bg-muted-bg px-3.5 py-3">
+    <span class="text-xs text-muted">Questions</span
+    ><span class="text-base font-semibold">{{.QuestionCount}}</span>
+  </div>
+  <div class="flex flex-col gap-0.5 rounded-[10px] bg-muted-bg px-3.5 py-3">
+    <span class="text-xs text-muted">Marks</span
+    ><span class="text-base font-semibold">{{num .TotalMarks}}</span>
+  </div>
+</div>
+{{end}} {{define "rules"}}
+<ul
+  class="flex flex-col gap-3 text-sm text-fg-2 [&_svg]:mt-0.5 [&_svg]:text-primary"
+>
+  <li class="flex gap-2.5">
+    {{template "i-clock"}}<span
+      >The timer starts when you press Start and keeps running if you close the
+      page. It closes at {{clock .}} even if you have time left.</span
+    >
+  </li>
+  <li class="flex gap-2.5">
+    {{template "i-check"}}<span
+      >Your answers save automatically as you go.</span
+    >
+  </li>
+  <li class="flex gap-2.5">
+    {{template "i-screen"}}<span
+      >Stay on this page until you submit. Leaving it is shown to your
+      invigilator.</span
+    >
+  </li>
+  <li class="flex gap-2.5">
+    {{template "i-flag"}}<span
+      >Flag questions you want to come back to before submitting.</span
+    >
+  </li>
 </ul>
-{{end}}
-
-
-{{/* ---------- Icons (Lucide shapes, as Penlumen School uses) ---------- */}}
-
-{{/* A formatted-text editor (static/editor.js): (dict "Name" "body"
-   "Value" html "Label" "Question" "Upload" "/assessments/…/images" "Text" false
-   "ID" "" "Rows" 3). Text marks a student's answer (data-text, for exam.js).
-   Without JavaScript the plain textarea shows instead. */}}
-{{define "editor"}}
-<div class="flex flex-col overflow-hidden rounded-md border border-line bg-card focus-within:border-focus" data-editor data-upload="{{.Upload}}">
-  <div class="hidden flex-wrap items-center gap-0.5 border-b border-line bg-soft px-1.5 py-1" role="toolbar" aria-label="Formatting">
-    <button class="btn btn-ghost btn-sm w-8 px-0 font-bold aria-pressed:bg-muted-bg" type="button" data-cmd="bold" aria-pressed="false" title="Bold (Ctrl+B)">B</button>
-    <button class="btn btn-ghost btn-sm w-8 px-0 italic aria-pressed:bg-muted-bg" type="button" data-cmd="italic" aria-pressed="false" title="Italic (Ctrl+I)">I</button>
-    <button class="btn btn-ghost btn-sm w-8 px-0 underline aria-pressed:bg-muted-bg" type="button" data-cmd="underline" aria-pressed="false" title="Underline (Ctrl+U)">U</button>
+{{end}} {{/* ---------- Icons (Lucide shapes, as Penlumen School uses)
+---------- */}} {{/* A formatted-text editor (static/editor.js): (dict "Name"
+"body" "Value" html "Label" "Question" "Upload" "/assessments/…/images" "Text"
+false "ID" "" "Rows" 3). Text marks a student's answer (data-text, for exam.js).
+Without JavaScript the plain textarea shows instead. */}} {{define "editor"}}
+<div
+  class="flex flex-col overflow-hidden rounded-md border border-line bg-card focus-within:border-focus"
+  data-editor
+  data-upload="{{.Upload}}"
+>
+  <div
+    class="hidden flex-wrap items-center gap-0.5 border-b border-line bg-soft px-1.5 py-1"
+    role="toolbar"
+    aria-label="Formatting"
+  >
+    <button
+      class="btn btn-ghost btn-sm w-8 px-0 font-bold aria-pressed:bg-muted-bg"
+      type="button"
+      data-cmd="bold"
+      aria-pressed="false"
+      title="Bold (Ctrl+B)"
+    >
+      B
+    </button>
+    <button
+      class="btn btn-ghost btn-sm w-8 px-0 italic aria-pressed:bg-muted-bg"
+      type="button"
+      data-cmd="italic"
+      aria-pressed="false"
+      title="Italic (Ctrl+I)"
+    >
+      I
+    </button>
+    <button
+      class="btn btn-ghost btn-sm w-8 px-0 underline aria-pressed:bg-muted-bg"
+      type="button"
+      data-cmd="underline"
+      aria-pressed="false"
+      title="Underline (Ctrl+U)"
+    >
+      U
+    </button>
     <span class="mx-1 h-5 w-px bg-line" aria-hidden="true"></span>
-    <button class="btn btn-ghost btn-sm w-8 px-0 aria-pressed:bg-muted-bg" type="button" data-cmd="superscript" aria-pressed="false" title="Superscript, as in x²">x<sup>2</sup></button>
-    <button class="btn btn-ghost btn-sm w-8 px-0 aria-pressed:bg-muted-bg" type="button" data-cmd="subscript" aria-pressed="false" title="Subscript, as in H₂O">x<sub>2</sub></button>
+    <button
+      class="btn btn-ghost btn-sm w-8 px-0 aria-pressed:bg-muted-bg"
+      type="button"
+      data-cmd="superscript"
+      aria-pressed="false"
+      title="Superscript, as in x²"
+    >
+      x<sup>2</sup>
+    </button>
+    <button
+      class="btn btn-ghost btn-sm w-8 px-0 aria-pressed:bg-muted-bg"
+      type="button"
+      data-cmd="subscript"
+      aria-pressed="false"
+      title="Subscript, as in H₂O"
+    >
+      x<sub>2</sub>
+    </button>
     <span class="mx-1 h-5 w-px bg-line" aria-hidden="true"></span>
-    <button class="btn btn-ghost btn-sm w-8 px-0 aria-pressed:bg-muted-bg" type="button" data-cmd="insertUnorderedList" aria-pressed="false" title="Bulleted list"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg><span class="sr-only">Bulleted list</span></button>
-    <button class="btn btn-ghost btn-sm w-8 px-0 aria-pressed:bg-muted-bg" type="button" data-cmd="insertOrderedList" aria-pressed="false" title="Numbered list"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6h10M10 12h10M10 18h10M4 4h1v4M4 8h2M4 14h2l-2 3h2"/></svg><span class="sr-only">Numbered list</span></button>
+    <button
+      class="btn btn-ghost btn-sm w-8 px-0 aria-pressed:bg-muted-bg"
+      type="button"
+      data-cmd="insertUnorderedList"
+      aria-pressed="false"
+      title="Bulleted list"
+    >
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" /></svg
+      ><span class="sr-only">Bulleted list</span>
+    </button>
+    <button
+      class="btn btn-ghost btn-sm w-8 px-0 aria-pressed:bg-muted-bg"
+      type="button"
+      data-cmd="insertOrderedList"
+      aria-pressed="false"
+      title="Numbered list"
+    >
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M10 6h10M10 12h10M10 18h10M4 4h1v4M4 8h2M4 14h2l-2 3h2" /></svg
+      ><span class="sr-only">Numbered list</span>
+    </button>
     {{if .Upload}}
     <span class="mx-1 h-5 w-px bg-line" aria-hidden="true"></span>
-    <button class="btn btn-ghost btn-sm gap-1.5 px-2" type="button" data-editor-picture title="Add a picture (or paste one)"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>Picture</button>
-    <input class="hidden" type="file" accept="image/png,image/jpeg,image/gif,image/webp" data-editor-file tabindex="-1" aria-hidden="true">
+    <button
+      class="btn btn-ghost btn-sm gap-1.5 px-2"
+      type="button"
+      data-editor-picture
+      title="Add a picture (or paste one)"
+    >
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <circle cx="9" cy="9" r="2" />
+        <path d="m21 15-5-5L5 21" /></svg
+      >Picture
+    </button>
+    <input
+      class="hidden"
+      type="file"
+      accept="image/png,image/jpeg,image/gif,image/webp"
+      data-editor-file
+      tabindex="-1"
+      aria-hidden="true"
+    />
     {{end}}
   </div>
-  <div class="rich hidden max-h-[60vh] min-h-24 overflow-y-auto px-3 py-2 text-[15px] text-fg outline-none {{if gt (or .Rows 0) 5}}min-h-56{{end}}" contenteditable="true" role="textbox" aria-multiline="true" aria-label="{{.Label}}" data-editor-area {{with .Placeholder}}data-placeholder="{{.}}"{{end}}></div>
+  <div
+    class="rich hidden max-h-[60vh] min-h-24 overflow-y-auto px-3 py-2 text-[15px] text-fg outline-none {{if gt (or .Rows 0) 5}}min-h-56{{end}}"
+    contenteditable="true"
+    role="textbox"
+    aria-multiline="true"
+    aria-label="{{.Label}}"
+    data-editor-area
+    {{with
+    .Placeholder}}data-placeholder="{{.}}"
+    {{end}}
+  ></div>
+  <!-- prettier-ignore -->
   <textarea class="input rounded-none border-0" {{with .ID}}id="{{.}}"{{end}} name="{{.Name}}" rows="{{or .Rows 3}}" aria-label="{{.Label}}" {{if .Text}}data-text{{end}}>{{.Value}}</textarea>
-  <p class="hidden px-3 pb-2 text-xs text-muted empty:hidden" data-editor-status role="status"></p>
+  <p
+    class="hidden px-3 pb-2 text-xs text-muted empty:hidden"
+    data-editor-status
+    role="status"
+  ></p>
 </div>
-{{end}}
-
-{{define "i-clock"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>{{end}}
-{{define "i-check"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>{{end}}
-{{define "i-flag"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 22V4M4 4h12l-2 4 2 4H4"/></svg>{{end}}
-{{define "i-left"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>{{end}}
-{{define "i-right"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>{{end}}
-{{define "i-info"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>{{end}}
-{{define "i-trash"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>{{end}}
-{{define "i-plus"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>{{end}}
-{{define "i-screen"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/></svg>{{end}}
-{{define "i-send"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>{{end}}
-{{define "i-clipboard"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>{{end}}
-{{define "i-home"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/></svg>{{end}}
-{{define "i-logout"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>{{end}}
-{{define "i-arrow"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>{{end}}
-{{define "i-upload"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>{{end}}
-{{define "i-download"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>{{end}}
-{{define "i-edit"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>{{end}}
-{{define "i-users"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>{{end}}
-{{define "i-file"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>{{end}}
-{{define "i-book"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3Z"/></svg>{{end}}
-{{define "i-pulse"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>{{end}}
-{{define "i-chart"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg>{{end}}
-{{define "i-calendar"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>{{end}}
-{{define "i-lock"}}<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>{{end}}
+{{end}} {{define "i-clock"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <circle cx="12" cy="13" r="8" />
+  <path d="M12 9v4l2 2M9 2h6" /></svg
+>{{end}} {{define "i-check"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path d="M20 6 9 17l-5-5" /></svg
+>{{end}} {{define "i-flag"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path d="M4 22V4M4 4h12l-2 4 2 4H4" /></svg
+>{{end}} {{define "i-left"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path d="m15 18-6-6 6-6" /></svg
+>{{end}} {{define "i-right"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path d="m9 18 6-6-6-6" /></svg
+>{{end}} {{define "i-info"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <circle cx="12" cy="12" r="10" />
+  <path d="M12 16v-4M12 8h.01" /></svg
+>{{end}} {{define "i-trash"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" /></svg
+>{{end}} {{define "i-plus"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path d="M12 5v14M5 12h14" /></svg
+>{{end}} {{define "i-screen"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <rect x="3" y="4" width="18" height="14" rx="2" />
+  <path d="M8 21h8" /></svg
+>{{end}} {{define "i-send"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path d="m22 2-7 20-4-9-9-4Z" />
+  <path d="M22 2 11 13" /></svg
+>{{end}} {{define "i-clipboard"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <rect x="8" y="2" width="8" height="4" rx="1" />
+  <path
+    d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+  />
+  <path d="m9 14 2 2 4-4" /></svg
+>{{end}} {{define "i-home"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path d="M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z" /></svg
+>{{end}} {{define "i-logout"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path
+    d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"
+  /></svg
+>{{end}} {{define "i-arrow"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path d="M7 17 17 7M7 7h10v10" /></svg
+>{{end}} {{define "i-upload"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path
+    d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"
+  /></svg
+>{{end}} {{define "i-download"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path
+    d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"
+  /></svg
+>{{end}} {{define "i-edit"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path d="M12 20h9" />
+  <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg
+>{{end}} {{define "i-gear"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path
+    d="M12.2 2h-.4a2 2 0 0 0-2 2v.2a2 2 0 0 1-1 1.7l-.4.3a2 2 0 0 1-2 0l-.2-.1a2 2 0 0 0-2.7.7l-.2.4a2 2 0 0 0 .7 2.7l.2.1a2 2 0 0 1 1 1.7v.5a2 2 0 0 1-1 1.8l-.2.1a2 2 0 0 0-.7 2.7l.2.4a2 2 0 0 0 2.7.7l.2-.1a2 2 0 0 1 2 0l.4.3a2 2 0 0 1 1 1.7v.2a2 2 0 0 0 2 2h.4a2 2 0 0 0 2-2v-.2a2 2 0 0 1 1-1.7l.4-.3a2 2 0 0 1 2 0l.2.1a2 2 0 0 0 2.7-.7l.2-.4a2 2 0 0 0-.7-2.7l-.2-.1a2 2 0 0 1-1-1.8v-.5a2 2 0 0 1 1-1.7l.2-.1a2 2 0 0 0 .7-2.7l-.2-.4a2 2 0 0 0-2.7-.7l-.2.1a2 2 0 0 1-2 0l-.4-.3a2 2 0 0 1-1-1.7V4a2 2 0 0 0-2-2Z"
+  />
+  <circle cx="12" cy="12" r="3" /></svg
+>{{end}} {{define "i-users"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+  <circle cx="9" cy="7" r="4" />
+  <path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8" /></svg
+>{{end}} {{define "i-file"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+  <path d="M14 2v6h6" /></svg
+>{{end}} {{define "i-book"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path
+    d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3Z"
+  /></svg
+>{{end}} {{define "i-pulse"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg
+>{{end}} {{define "i-chart"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <path d="M3 3v18h18" />
+  <path d="m7 15 4-4 3 3 5-6" /></svg
+>{{end}} {{define "i-calendar"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <rect x="3" y="4" width="18" height="18" rx="2" />
+  <path d="M16 2v4M8 2v4M3 10h18" /></svg
+>{{end}} {{define "i-lock"}}<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+>
+  <rect x="3" y="11" width="18" height="11" rx="2" />
+  <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
+>{{end}}

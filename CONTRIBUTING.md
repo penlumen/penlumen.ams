@@ -42,9 +42,11 @@ Penlumen School.
 - **Scores sent to Penlumen School** are on the report's scale (out of the
   branch's `assessment_max` or `examination_max`), and each test has a stable
   `source_id` so resending updates rather than adds.
-- **Styling** is [Tailwind CSS](https://tailwindcss.com) 4, loaded from the
-  CDN in `templates/layout.html`, so there's no build step: write utility
-  classes in the templates. Colours are the theme names defined there
+- **Styling** is [Tailwind CSS](https://tailwindcss.com) 4: its browser
+  build, `static/tailwind.js` (4.3.3, served by Exams so it works without
+  internet), turns the classes into CSS as pages load, so there's no build
+  step: write utility classes in the templates. Colours are the theme names
+  defined in `templates/layout.html`
   (`bg-card`, `text-muted`, `border-line`, `bg-primary`, …), never raw hex, so
   the school's theme colour applies. The few repeated pieces (`btn`, `card`, `pill`,
   `input`, `field`, `icon`) are `@utility` blocks in the same file. State the
