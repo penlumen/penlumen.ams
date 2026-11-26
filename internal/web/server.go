@@ -214,7 +214,7 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("POST /attempts/{id}/ping", s.student(s.ping))
 	mux.HandleFunc("POST /attempts/{id}/snapshot", s.student(s.snapshot))
 	mux.HandleFunc("POST /attempts/{id}/images", s.student(s.uploadAnswerImage))
-	mux.HandleFunc("GET /images/{id}", s.requireUser(func(*auth.User) bool { return true }, s.image))
+	mux.HandleFunc("GET /images/{id}", s.requireUser(false, func(*auth.User) bool { return true }, s.image))
 	mux.HandleFunc("POST /attempts/{id}/submit", s.student(s.submitAttempt))
 
 	return s.sameOrigin(logRequests(mux))
@@ -247,23 +247,29 @@ func (s *Server) home(w http.ResponseWriter, r *http.Request) {
 type handler func(w http.ResponseWriter, r *http.Request, user *auth.User)
 
 func (s *Server) staff(h handler) http.HandlerFunc {
-	return s.requireUser(func(u *auth.User) bool { return u.IsStaff() }, h)
+	return s.requireUser(true, func(u *auth.User) bool { return u.IsStaff() }, h)
 }
 
 func (s *Server) admin(h handler) http.HandlerFunc {
-	return s.requireUser(func(u *auth.User) bool { return u.IsAdmin() }, h)
+	return s.requireUser(true, func(u *auth.User) bool { return u.IsAdmin() }, h)
 }
 
 func (s *Server) student(h handler) http.HandlerFunc {
-	return s.requireUser(func(u *auth.User) bool { return u.IsStudent() }, h)
+	return s.requireUser(false, func(u *auth.User) bool { return u.IsStudent() }, h)
 }
 
-func (s *Server) requireUser(allowed func(*auth.User) bool, h handler) http.HandlerFunc {
+// requireUser lets through people allowed to see a page; others signed out
+// go to sign in, on the Staff tab for staff pages (staffPage).
+func (s *Server) requireUser(staffPage bool, allowed func(*auth.User) bool, h handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := s.currentUser(r)
 		if user == nil {
 			if r.Method == http.MethodGet {
-				http.Redirect(w, r, "/login?return_to="+url.QueryEscape(r.URL.RequestURI()), http.StatusFound)
+				as := ""
+				if staffPage {
+					as = "as=staff&"
+				}
+				http.Redirect(w, r, "/login?"+as+"return_to="+url.QueryEscape(r.URL.RequestURI()), http.StatusFound)
 				return
 			}
 			s.fail(w, r, http.StatusUnauthorized, "You've been signed out. Sign in again and retry.")

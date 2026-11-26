@@ -123,7 +123,8 @@ func (s *Server) loginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.renderLogin(w, r, http.StatusOK, loginData{
-		Student:  r.URL.Query().Get("as") == "student",
+		// Students by default (most people signing in are sitting an exam).
+		Student:  r.URL.Query().Get("as") != "staff",
 		ReturnTo: auth.SafeReturn(r.URL.Query().Get("return_to")),
 	})
 }
@@ -135,7 +136,7 @@ func (s *Server) renderLogin(w http.ResponseWriter, r *http.Request, status int,
 
 func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 	d := loginData{
-		Student:  r.PostFormValue("as") == "student",
+		Student:  r.PostFormValue("as") != "staff",
 		Name:     strings.TrimSpace(r.PostFormValue("name")),
 		ReturnTo: auth.SafeReturn(r.PostFormValue("return_to")),
 	}

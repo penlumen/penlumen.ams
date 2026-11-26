@@ -421,7 +421,7 @@ func TestCrossSiteFormsAreRefused(t *testing.T) {
 func TestSignedOutAndWrongRole(t *testing.T) {
 	h := newHarness(t)
 	code, _, loc := h.do(nil, "GET", "/assessments/new", nil)
-	if code != 302 || !strings.HasPrefix(loc, "/login?return_to=") {
+	if code != 302 || !strings.HasPrefix(loc, "/login?as=staff&return_to=") {
 		t.Fatalf("signed out: %d %q", code, loc)
 	}
 	code, _, _ = h.do(&amina, "GET", "/assessments/new", nil)

@@ -9,8 +9,8 @@
     </div>
 
     <div class="grid grid-cols-2 gap-1 rounded-[10px] bg-muted-bg p-1 text-sm" role="tablist" aria-label="I am">
-      <a class="rounded-md px-3 py-1.5 text-center font-medium no-underline {{if $l.Student}}bg-card text-fg shadow-sm{{else}}text-muted hover:text-fg{{end}}" role="tab" aria-selected="{{$l.Student}}" href="/login?as=student&amp;return_to={{$l.ReturnTo}}">Student</a>
-      <a class="rounded-md px-3 py-1.5 text-center font-medium no-underline {{if not $l.Student}}bg-card text-fg shadow-sm{{else}}text-muted hover:text-fg{{end}}" role="tab" aria-selected="{{not $l.Student}}" href="/login?return_to={{$l.ReturnTo}}">Staff</a>
+      <a class="rounded-md px-3 py-1.5 text-center font-medium no-underline {{if not $l.Student}}bg-card text-fg shadow-sm{{else}}text-muted hover:text-fg{{end}}" role="tab" aria-selected="{{not $l.Student}}" href="/login?as=staff&amp;return_to={{$l.ReturnTo}}">Staff</a>
+      <a class="rounded-md px-3 py-1.5 text-center font-medium no-underline {{if $l.Student}}bg-card text-fg shadow-sm{{else}}text-muted hover:text-fg{{end}}" role="tab" aria-selected="{{$l.Student}}" href="/login?return_to={{$l.ReturnTo}}">Student</a>
     </div>
 
     {{template "error-box" $l.Error}}
